@@ -1,24 +1,32 @@
-/* Seeds the demo organization once, only when SEED_DEMO=true and it does not exist yet.
+/* Seeds the demo organization on an empty database (first deployment), unless SEED_DEMO=false.
  * Used by `vercel-build` so a fresh hosted database is usable right after the first deployment.
+ * Never touches a database that already has an organization.
  */
 import { execSync } from "node:child_process";
 import { PrismaClient } from "@prisma/client";
 
+const flag = (process.env.SEED_DEMO ?? "").trim().toLowerCase();
+const disabled = ["false", "0", "no", "non"].includes(flag);
+
 async function main() {
-  if (process.env.SEED_DEMO !== "true") {
-    console.log("SEED_DEMO is not 'true': skipping demo seed.");
+  if (disabled) {
+    console.log("SEED_DEMO=false : la démonstration n'est pas chargée.");
     return;
   }
   const prisma = new PrismaClient();
+  let organizations = 0;
   try {
-    const existing = await prisma.organization.findUnique({ where: { slug: "demo" } });
-    if (existing) {
-      console.log("Demo organization already present: skipping seed.");
-      return;
-    }
+    organizations = await prisma.organization.count();
   } finally {
     await prisma.$disconnect();
   }
+  if (organizations > 0) {
+    console.log(
+      `Base déjà initialisée (${organizations} organisation(s)) : pas de démonstration chargée.`,
+    );
+    return;
+  }
+  console.log("Base vide : chargement de l'organisation de démonstration…");
   execSync("pnpm exec tsx prisma/seed.ts", { stdio: "inherit", env: process.env });
 }
 

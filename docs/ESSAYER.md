@@ -87,7 +87,7 @@ Tout se passe dans le navigateur; aucune commande à taper.
    |---|---|
    | `AUTH_SECRET` | une phrase au hasard d'au moins 40 caractères (ex. tapez n'importe quoi de long) |
    | `PARTICIPANT_TOKEN_SECRET` | une autre phrase au hasard d'au moins 40 caractères |
-   | `SEED_DEMO` | `true` |
+   | `SEED_DEMO` | `true` (facultatif : sur une base vide, la démo se charge de toute façon; mettez `false` pour l'empêcher) |
 
 4. **Déployer** une première fois (le build échouera avec le message « Aucune base de données » :
    c'est normal, il manque l'étape suivante).

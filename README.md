@@ -105,8 +105,10 @@ liens magiques consommés en POST seulement; aucune donnée personnelle dans les
    directe dans `DIRECT_URL`; Neon : la même URL dans les deux).
 2. Sur Vercel, importer le dépôt, définir toutes les variables de `.env.example` (production),
    `AUTH_URL` et `APP_BASE_URL` = URL finale en HTTPS.
-3. Commande de build : `pnpm build` (exécute `prisma generate`). Appliquer les migrations avant le
-   premier déploiement : `pnpm db:deploy` avec les variables de production.
+3. Vercel utilise automatiquement `pnpm vercel-build` (migrations, démo si `SEED_DEMO=true` et base
+   vide, puis build). Les variables injectées par l'intégration Neon/Postgres de Vercel
+   (`POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL_UNPOOLED`…) sont reconnues sans
+   configuration; `APP_BASE_URL` et `AUTH_URL` sont déduites du domaine Vercel si absentes.
 4. Créer l'organisation réelle : `pnpm create-org …` (avec les variables de production), puis se
    connecter et changer le mot de passe temporaire.
 5. Configurer Resend (domaine vérifié) et `EMAIL_FROM`.

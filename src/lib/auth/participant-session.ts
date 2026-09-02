@@ -67,6 +67,14 @@ export async function participantAccessUrl(
   return `${appBaseUrl()}/p/${token}`;
 }
 
+/** Public origin of the app: APP_BASE_URL, else the Vercel production domain, else localhost. */
 export function appBaseUrl(): string {
-  return (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const configured =
+    process.env.APP_BASE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : undefined) ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+    "http://localhost:3000";
+  return configured.replace(/\/$/, "");
 }

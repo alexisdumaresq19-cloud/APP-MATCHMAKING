@@ -1,11 +1,14 @@
 import { z } from "zod";
+import { applyDatabaseUrlsToEnv } from "@/lib/db/database-url";
 
 const emptyToUndefined = (value: unknown) =>
   typeof value === "string" && value.trim() === "" ? undefined : value;
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  DATABASE_URL: z.string().min(1, "DATABASE_URL est requis"),
+  DATABASE_URL: z
+    .string()
+    .min(1, "DATABASE_URL est requis (ou POSTGRES_URL via une intégration d'hébergement)"),
   AUTH_SECRET: z.string().min(16, "AUTH_SECRET doit contenir au moins 16 caractères"),
   AUTH_URL: z.url().optional(),
   PARTICIPANT_TOKEN_SECRET: z
@@ -35,6 +38,7 @@ let cached: Env | undefined;
 
 export function getEnv(): Env {
   if (cached) return cached;
+  applyDatabaseUrlsToEnv();
   const raw: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(process.env)) raw[key] = emptyToUndefined(value);
   const parsed = schema.safeParse(raw);

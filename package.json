@@ -28,7 +28,7 @@
     "billing:report": "tsx --env-file-if-exists=.env scripts/billing-report.ts",
     "prepare": "husky",
     "first-run": "tsx scripts/first-run.ts",
-    "vercel-build": "prisma migrate deploy && prisma generate && tsx scripts/ensure-demo.ts && next build"
+    "vercel-build": "tsx scripts/vercel-build.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

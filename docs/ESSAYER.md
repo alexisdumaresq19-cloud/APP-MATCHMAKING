@@ -1,7 +1,8 @@
 # Essayer Jumelage
 
-Deux façons de tester l'application avec de vraies interactions : sur votre ordinateur (10 minutes)
-ou en ligne sur Vercel (20 minutes, accessible depuis n'importe quel téléphone).
+Deux façons de tester l'application avec de vraies interactions : en ligne sur Vercel sans rien
+installer (15 minutes, accessible depuis n'importe quel téléphone), ou sur votre ordinateur (10
+minutes, avec un terminal).
 
 Dans les deux cas, les données de démonstration sont créées automatiquement :
 
@@ -19,13 +20,14 @@ Dans les deux cas, les données de démonstration sont créées automatiquement 
 2. **pnpm** : dans le terminal, `corepack enable` (ou `npm install -g pnpm`). Vérifiez : `pnpm -v`.
 3. **Git** : https://git-scm.com (sur Mac, `xcode-select --install` suffit).
 4. **PostgreSQL**, au choix :
+   - **une base en ligne gratuite, sans installation** (Neon : https://neon.tech) : créez un projet,
+     cliquez « Connect », décochez « Connection pooling », copiez la chaîne de connexion et
+     passez-la à l'étape 3 avec `--database-url`; ou
    - **Docker Desktop** (https://www.docker.com/products/docker-desktop) puis, dans le dossier du
      projet, `docker compose up -d` : la base est prête sur le port 5432; ou
    - **Postgres.app** sur Mac (https://postgresapp.com) / l'installateur Windows
      (https://www.postgresql.org/download/windows/) avec l'utilisateur `postgres` et le mot de passe
-     `postgres`, puis créez la base `matchmaking_dev`; ou
-   - **une base en ligne gratuite** (Neon : https://neon.tech) : copiez la chaîne de connexion et
-     passez-la à l'étape 3 avec `--database-url`.
+     `postgres`, puis créez la base `matchmaking_dev`.
 
 ### 2. Récupérer le projet
 
@@ -71,31 +73,38 @@ Pour recevoir de vrais courriels, créez un compte Resend (https://resend.com), 
 (Resend n'envoie alors qu'à l'adresse de votre compte). La boîte « Courriels (test) » disparaît dès
 qu'un service d'envoi est configuré.
 
-## B. En ligne (Vercel + Neon), pour tester depuis n'importe où
+## B. En ligne avec Vercel, sans rien installer (recommandé pour un premier essai)
 
-1. **Base de données** : créez un projet gratuit sur https://neon.tech et copiez la chaîne de
-   connexion (« Connection string », avec `?sslmode=require`).
-2. **Vercel** : sur https://vercel.com, « Add New… → Project », importez le dépôt GitHub
-   `APP-MATCHMAKING` et choisissez la branche `claude/matchmaking-networking-platform-oevm9v`.
-3. **Variables d'environnement** (section « Environment Variables » avant de déployer) :
+Tout se passe dans le navigateur; aucune commande à taper.
+
+1. **Compte Vercel** : https://vercel.com, « Sign up » avec votre compte GitHub (celui du dépôt
+   `APP-MATCHMAKING`).
+2. **Importer le projet** : « Add New… → Project », choisissez `APP-MATCHMAKING`. Dans les réglages
+   d'import, laissez « Framework Preset : Next.js » et ne déployez pas tout de suite.
+3. **Variables d'environnement** (section « Environment Variables ») : ajoutez seulement
 
    | Variable | Valeur |
    |---|---|
-   | `DATABASE_URL` | chaîne Neon |
-   | `DIRECT_URL` | la même chaîne Neon |
-   | `AUTH_SECRET` | un secret aléatoire (`openssl rand -base64 32`, ou 40 caractères au hasard) |
-   | `PARTICIPANT_TOKEN_SECRET` | un autre secret aléatoire (32 caractères minimum) |
-   | `AUTH_URL` | `https://VOTRE-PROJET.vercel.app` |
-   | `APP_BASE_URL` | `https://VOTRE-PROJET.vercel.app` |
-   | `EMAIL_FROM` | `Jumelage <no-reply@example.com>` |
-   | `SEED_DEMO` | `true` (charge la démo au premier déploiement seulement) |
+   | `AUTH_SECRET` | une phrase au hasard d'au moins 40 caractères (ex. tapez n'importe quoi de long) |
+   | `PARTICIPANT_TOKEN_SECRET` | une autre phrase au hasard d'au moins 40 caractères |
+   | `SEED_DEMO` | `true` |
 
-4. Déployez. Le script `vercel-build` applique les migrations, charge la démo si la base est vide,
-   puis construit l'application. Les mêmes adresses que ci-dessus fonctionnent sur votre domaine
-   Vercel, y compris « Courriels (test) » tant que `RESEND_API_KEY` n'est pas défini.
+4. **Déployer** une première fois (le build échouera avec le message « Aucune base de données » :
+   c'est normal, il manque l'étape suivante).
+5. **Base de données** : dans le projet, onglet **Storage → Create Database → Neon (Postgres)**,
+   plan gratuit, région la plus proche (Ohio ou Virginie). Cliquez « Connect » pour lier la base au
+   projet : Vercel ajoute lui-même les variables de connexion.
+6. **Redéployer** : onglet « Deployments → … → Redeploy ». Le build applique les migrations, charge
+   la démonstration (120 participants) et construit l'application. Comptez 2 à 3 minutes.
+7. Ouvrez l'adresse du projet (`https://votre-projet.vercel.app`) :
+   - `/e/demo/rencontres-affaires-printemps` pour vous inscrire depuis n'importe quel téléphone;
+   - `/admin/login` (`owner@demo.local` / `Demo-1234!`), puis « Courriels (test) » pour cliquer sur
+     les liens des participants.
 
-Note : le nom de projet Vercel n'est connu qu'après l'import; si vous ne le connaissez pas encore,
-déployez une première fois, puis mettez à jour `AUTH_URL` et `APP_BASE_URL` et redéployez.
+Chaque fois que le code est mis à jour sur la branche, Vercel redéploie automatiquement.
+
+Si vous préférez créer la base vous-même sur https://neon.tech, ajoutez `DATABASE_URL` (chaîne
+« pooled ») et `DIRECT_URL` (chaîne « direct », pooling désactivé) aux variables de l'étape 3.
 
 ## Dépannage
 

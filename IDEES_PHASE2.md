@@ -14,3 +14,4 @@
 - Génération de PDF vectoriel (`@react-pdf/renderer`) si la page HTML imprimable ne suffit pas.
 - Invitations « amenez un partenaire » : un participant recommande une entreprise complémentaire.
 - Sondage post-événement (« Avez-vous conclu une affaire ? ») pour mesurer la valeur des jumelages et ajuster la matrice d'affinité.
+- Check-in par lecture d'un code QR personnel (affiché dans l'espace participant), à la façon de Luma.

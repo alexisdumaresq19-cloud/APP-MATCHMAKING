@@ -106,7 +106,7 @@ export function RegistrantDrawer({ registrant, sectors, regions }: Props) {
         </SheetHeader>
 
         <div className="space-y-6 px-4 pb-6">
-          <section className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <section className="space-y-3 rounded-lg border p-3">
             <Field label="Statut de l'inscription" htmlFor={`status-${registrant.registrationId}`}>
               <NativeSelect
                 id={`status-${registrant.registrationId}`}

@@ -1,0 +1,419 @@
+// Prisma schema — see section 5 of the specification.
+// Additions to the specification are marked with "// ADDED:" and documented in DECISIONS.md (D-08).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum OrganizerRole {
+  OWNER
+  STAFF
+}
+
+enum EventStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  MATCHED
+  PUBLISHED
+  COMPLETED
+  ARCHIVED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  CONFIRMED
+  CHECKED_IN
+  CANCELLED
+  NO_SHOW
+}
+
+// For billing: every source counts.
+enum RegistrationSource {
+  PLATFORM
+  MANUAL
+  IMPORT
+}
+
+enum MatchStatus {
+  PROPOSED
+  PINNED
+  EXCLUDED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  EXPORT
+  LOGIN
+  MATCH_RUN
+  PUBLISH
+  CONSENT
+  DATA_REQUEST
+  LOGIN_FAILED // ADDED
+  CHECK_IN // ADDED
+  STATUS_CHANGE // ADDED
+}
+
+// ADDED: purpose of a single-use organizer token.
+enum OrganizerTokenPurpose {
+  MAGIC_LINK
+  PASSWORD_RESET
+  INVITE
+}
+
+// ADDED: lifecycle of a Law 25 deletion request.
+enum DeletionRequestStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+model Organization {
+  id             String   @id @default(cuid())
+  slug           String   @unique // e.g. "allyson-handfield"
+  name           String // legal / trade name of the organizer
+  platformName   String   @default("Jumelage") // displayed platform name
+  logoUrl        String?
+  primaryColor   String   @default("#1F3864")
+  accentColor    String   @default("#F2C94C")
+  consentText    String   @db.Text // Law 25 notice shown at registration
+  consentVersion String   @default("") // ADDED: sha256 of consentText, recomputed on change
+  privacyEmail   String // privacy officer
+  replyToEmail   String
+  timezone       String   @default("America/Toronto") // ADDED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organizers       Organizer[]
+  events           Event[]
+  participants     Participant[]
+  sectors          Sector[]
+  sectorAffinities SectorAffinity[]
+  matchingRuleSets MatchingRuleSet[]
+  auditLogs        AuditLog[]
+  organizerTokens  OrganizerToken[]
+  deletionRequests DeletionRequest[]
+  billingSnapshots BillingSnapshot[]
+}
+
+model Organizer {
+  id               String        @id @default(cuid())
+  organizationId   String
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email            String
+  name             String
+  passwordHash     String?
+  role             OrganizerRole @default(STAFF)
+  isActive         Boolean       @default(true)
+  lastLoginAt      DateTime?
+  sessionVersion   Int           @default(0) // ADDED: bump to sign out everywhere
+  failedLoginCount Int           @default(0) // ADDED: progressive lockout
+  lockedUntil      DateTime? // ADDED
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  tokens OrganizerToken[]
+
+  @@unique([organizationId, email])
+  @@index([email])
+}
+
+// ADDED: single-use tokens for magic links, password resets and invitations.
+model OrganizerToken {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizerId    String
+  organizer      Organizer             @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  tokenHash      String                @unique // sha256 of the raw token
+  purpose        OrganizerTokenPurpose
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime              @default(now())
+
+  @@index([organizerId, purpose])
+}
+
+model Sector {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String // e.g. "Garderie / petite enfance"
+  slug           String
+  sortOrder      Int          @default(0)
+  isActive       Boolean      @default(true)
+
+  participants   Participant[]
+  affinitiesFrom SectorAffinity[] @relation("from")
+  affinitiesTo   SectorAffinity[] @relation("to")
+
+  @@unique([organizationId, slug])
+}
+
+// Sector affinity matrix, edited by the organizer.
+// score 0..100; symmetric by default (one direction stored, a.id < b.id).
+model SectorAffinity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fromSectorId   String
+  fromSector     Sector       @relation("from", fields: [fromSectorId], references: [id], onDelete: Cascade)
+  toSectorId     String
+  toSector       Sector       @relation("to", fields: [toSectorId], references: [id], onDelete: Cascade)
+  score          Int          @default(50)
+
+  @@unique([organizationId, fromSectorId, toSectorId])
+}
+
+// A participant = a person + their company, at the organization level (reusable across events).
+model Participant {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  firstName      String
+  lastName       String
+  phone          String?
+  companyName    String
+  jobTitle       String?
+  sectorId       String?
+  sector         Sector?      @relation(fields: [sectorId], references: [id], onDelete: SetNull)
+  website        String?
+  city           String?
+  region         String? // administrative region (closed list, see src/lib/regions.ts)
+  offers         String[] // free tags: what the company offers
+  needs          String[] // free tags: what the company is looking for
+  description    String?      @db.Text // 300 characters max
+  tokenVersion   Int          @default(0) // increment to revoke every link
+  consentedAt    DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime? // logical deletion (Law 25); identifying fields are anonymized
+
+  registrations    EventRegistration[]
+  consents         ConsentLog[]
+  deletionRequests DeletionRequest[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId, sectorId])
+}
+
+model Event {
+  id                    String           @id @default(cuid())
+  organizationId        String
+  organization          Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  slug                  String // public URL /e/[orgSlug]/[eventSlug]
+  name                  String
+  description           String?          @db.Text
+  startsAt              DateTime
+  endsAt                DateTime?
+  venueName             String?
+  venueAddress          String?
+  capacity              Int? // max registrations (null = unlimited)
+  registrationOpensAt   DateTime?
+  registrationClosesAt  DateTime?
+  status                EventStatus      @default(DRAFT)
+  tableCount            Int              @default(10)
+  seatsPerTable         Int              @default(6)
+  roundCount            Int              @default(1) // 1 = fixed seating; >1 = meeting rounds
+  roundMinutes          Int?             @default(20)
+  matchesPerParticipant Int              @default(5)
+  matchingRuleSetId     String?
+  matchingRuleSet       MatchingRuleSet? @relation(fields: [matchingRuleSetId], references: [id])
+  matchedAt             DateTime?
+  publishedAt           DateTime?
+  reminderSentAt        DateTime? // ADDED
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  registrations EventRegistration[]
+  tables        EventTable[]
+  matches       Match[]
+  emailLogs     EmailLog[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status])
+}
+
+model EventRegistration {
+  id            String             @id @default(cuid())
+  eventId       String
+  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant        @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status        RegistrationStatus @default(REGISTERED)
+  source        RegistrationSource @default(PLATFORM)
+  // Snapshot of the answers at registration time (the profile may change afterwards).
+  offersSnapshot String[]
+  needsSnapshot  String[]
+  goalsText      String?  @db.Text // "Qu'espérez-vous retirer de cet événement ?"
+  notes          String?  @db.Text // organizer's internal notes
+  checkedInAt    DateTime?
+  cancelledAt    DateTime?
+  publishedMatchesHash String? // ADDED: hash of the match list at last publication
+  publishedAt          DateTime? // ADDED: last time this registrant received the matches email
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  assignments TableAssignment[]
+  matchesAsA  Match[]           @relation("a")
+  matchesAsB  Match[]           @relation("b")
+
+  @@unique([eventId, participantId])
+  @@index([eventId, status])
+}
+
+model EventTable {
+  id      String  @id @default(cuid())
+  eventId String
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  number  Int
+  label   String? // e.g. "Table A", "Salon bleu"
+  seats   Int
+
+  assignments TableAssignment[]
+
+  @@unique([eventId, number])
+}
+
+model TableAssignment {
+  id             String            @id @default(cuid())
+  tableId        String
+  table          EventTable        @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  registrationId String
+  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  round          Int               @default(1)
+  isLocked       Boolean           @default(false) // placed by hand by the organizer: the algorithm never moves it
+
+  @@unique([registrationId, round])
+  @@index([tableId, round])
+}
+
+// Pair of participants proposed for an event. a.id < b.id to avoid duplicates.
+model Match {
+  id        String            @id @default(cuid())
+  eventId   String
+  event     Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  aId       String
+  a         EventRegistration @relation("a", fields: [aId], references: [id], onDelete: Cascade)
+  bId       String
+  b         EventRegistration @relation("b", fields: [bId], references: [id], onDelete: Cascade)
+  score     Int // 0..100
+  reasons   Json // score breakdown, see section 7.3
+  status    MatchStatus       @default(PROPOSED)
+  rank      Int? // rank in a's list (and b's)
+  createdAt DateTime          @default(now())
+
+  @@unique([eventId, aId, bId])
+  @@index([eventId, status])
+}
+
+model MatchingRuleSet {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String       @default("Règles par défaut")
+  isDefault      Boolean      @default(false)
+  // Weights 0..100; see section 7.2
+  weightComplementarity Int     @default(40)
+  weightSectorAffinity  Int     @default(30)
+  weightRegion          Int     @default(15)
+  weightNovelty         Int     @default(15) // penalizes pairs that already met at a past event
+  penaltySameSector     Int     @default(60) // subtracted if same sector (competitors); 100 = exclusion
+  excludeSameCompany    Boolean @default(true)
+  minScoreToPropose     Int     @default(35)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  events Event[]
+
+  @@unique([organizationId, name])
+}
+
+model ConsentLog {
+  id             String      @id @default(cuid())
+  participantId  String
+  participant    Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  eventId        String?
+  consentVersion String // hash of consentText at consent time
+  consentText    String      @db.Text // full copy of the accepted text
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime    @default(now())
+
+  @@index([participantId])
+}
+
+model EmailLog {
+  id         String   @id @default(cuid())
+  eventId    String?
+  event      Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  toEmail    String
+  template   String // "registration_confirmed" | "matches_published" | "reminder" | "magic_link" | ...
+  providerId String?
+  status     String // "sent" | "failed"
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([eventId, template])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorType      String // "organizer" | "participant" | "system"
+  actorId        String?
+  action         AuditAction
+  entity         String // "Event" | "Participant" | ...
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+// Immutable counter for billing. One row per event, written by the system when the event
+// becomes COMPLETED. Never expose a write in the UI.
+model BillingSnapshot {
+  id                  String       @id @default(cuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade) // ADDED relation
+  eventId             String       @unique
+  totalRegistered     Int // every source, statuses REGISTERED+CONFIRMED+CHECKED_IN (excludes CANCELLED)
+  totalCheckedIn      Int
+  totalPlatformSource Int
+  totalManualSource   Int
+  computedAt          DateTime     @default(now())
+}
+
+// ADDED: Law 25 deletion request (participant asks, organizer confirms).
+model DeletionRequest {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    Participant           @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status         DeletionRequestStatus @default(PENDING)
+  requestedAt    DateTime              @default(now())
+  resolvedAt     DateTime?
+  resolvedById   String? // organizer id
+  note           String?               @db.Text
+
+  @@index([organizationId, status])
+}
+
+// ADDED: fixed-window rate limiting when Upstash is not configured (see D-07).
+model RateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+}

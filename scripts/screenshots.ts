@@ -31,14 +31,21 @@ async function participantToken(p: { id: string; organizationId: string; tokenVe
 
 async function shot(page: Page, name: string, options: { fullPage?: boolean } = {}) {
   await page.waitForLoadState("networkidle");
-  await page.screenshot({ path: path.join(outDir, `${name}.png`), fullPage: options.fullPage ?? false });
+  await page.screenshot({
+    path: path.join(outDir, `${name}.png`),
+    fullPage: options.fullPage ?? false,
+  });
   console.log("captured", name);
 }
 
 async function main() {
-  const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+  const browser = await chromium.launch({
+    executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+  });
   const eventSlug = "rencontres-affaires-printemps";
-  const event = await prisma.event.findFirstOrThrow({ where: { slug: eventSlug, organization: { slug: "demo" } } });
+  const event = await prisma.event.findFirstOrThrow({
+    where: { slug: eventSlug, organization: { slug: "demo" } },
+  });
   const registration = await prisma.eventRegistration.findFirstOrThrow({
     where: { eventId: event.id, status: "REGISTERED", participant: { sectorId: { not: null } } },
     include: { participant: true },
@@ -46,12 +53,18 @@ async function main() {
   const token = await participantToken(registration.participant);
 
   // ---- Mobile: public registration + participant space ----
-  const mobile = await browser.newContext({ ...devices["Pixel 7"], locale: "fr-CA", timezoneId: "America/Toronto" });
+  const mobile = await browser.newContext({
+    ...devices["Pixel 7"],
+    locale: "fr-CA",
+    timezoneId: "America/Toronto",
+  });
   const m = await mobile.newPage();
   await m.goto(`${baseURL}/e/demo/${eventSlug}`);
   await shot(m, "01-public-evenement");
   await m.locator("#inscription").scrollIntoViewIfNeeded();
-  await m.evaluate(() => document.querySelector("#inscription")?.scrollIntoView({ block: "start" }));
+  await m.evaluate(() =>
+    document.querySelector("#inscription")?.scrollIntoView({ block: "start" }),
+  );
   await shot(m, "02-inscription-etape-1");
   await m.getByLabel("Prénom").fill("Marie");
   await m.getByRole("textbox", { name: "Nom", exact: true }).fill("Tremblay");
@@ -63,15 +76,27 @@ async function main() {
   await m.getByLabel("Région").selectOption("Montréal");
   await m.getByLabel("Ville").fill("Montréal");
   await m.getByLabel("Site web").fill("petitspas.ca");
-  await m.getByLabel("Description courte de votre entreprise").fill("Garderie de 40 places à Rosemont, ouverte depuis 2015.");
-  await m.evaluate(() => document.querySelector("#inscription")?.scrollIntoView({ block: "start" }));
+  await m
+    .getByLabel("Description courte de votre entreprise")
+    .fill("Garderie de 40 places à Rosemont, ouverte depuis 2015.");
+  await m.evaluate(() =>
+    document.querySelector("#inscription")?.scrollIntoView({ block: "start" }),
+  );
   await shot(m, "03-inscription-etape-2");
   await m.getByRole("button", { name: "Continuer" }).click();
   const offers = m.getByLabel("Ce que vous offrez");
-  for (const t of ["garde d'enfants", "camp de jour"]) { await offers.fill(t); await offers.press("Enter"); }
+  for (const t of ["garde d'enfants", "camp de jour"]) {
+    await offers.fill(t);
+    await offers.press("Enter");
+  }
   const needs = m.getByLabel("Ce que vous cherchez");
-  for (const t of ["entretien ménager", "traiteur", "comptabilité"]) { await needs.fill(t); await needs.press("Enter"); }
-  await m.evaluate(() => document.querySelector("#inscription")?.scrollIntoView({ block: "start" }));
+  for (const t of ["entretien ménager", "traiteur", "comptabilité"]) {
+    await needs.fill(t);
+    await needs.press("Enter");
+  }
+  await m.evaluate(() =>
+    document.querySelector("#inscription")?.scrollIntoView({ block: "start" }),
+  );
   await shot(m, "04-inscription-etape-3");
   await m.getByLabel(/J'ai lu cet avis/).scrollIntoViewIfNeeded();
   await m.getByLabel(/J'ai lu cet avis/).check();
@@ -94,7 +119,11 @@ async function main() {
   await mobile.close();
 
   // ---- Desktop: organizer ----
-  const desktop = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "fr-CA", timezoneId: "America/Toronto" });
+  const desktop = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    locale: "fr-CA",
+    timezoneId: "America/Toronto",
+  });
   const d = await desktop.newPage();
   await d.goto(`${baseURL}/admin/login`);
   await shot(d, "12-admin-connexion");
@@ -116,7 +145,11 @@ async function main() {
   await desktop.close();
 
   // ---- Tablet: admin registrants (day-of usage) ----
-  const tablet = await browser.newContext({ ...devices["iPad Mini"], locale: "fr-CA", timezoneId: "America/Toronto" });
+  const tablet = await browser.newContext({
+    ...devices["iPad Mini"],
+    locale: "fr-CA",
+    timezoneId: "America/Toronto",
+  });
   const t = await tablet.newPage();
   await t.goto(`${baseURL}/admin/login`);
   await t.getByLabel("Courriel").first().fill("staff@demo.local");
@@ -131,5 +164,8 @@ async function main() {
 }
 
 main()
-  .catch((error) => { console.error(error); process.exit(1); })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

@@ -45,7 +45,16 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] S2-18 Icônes animées (`@animated-color-icons/lucide-react`, wrapper `AnimatedIcon`) prêtes pour la passe « wow »
 
 ## Semaine 3 — Tables, publication, jour J
-- [ ] S3-01 … S3-10 (voir PLAN.md)
+- [x] S3-01 Onglet Tables : configuration (tables, places, rondes, minutes, noms), « Placer automatiquement » (respecte les verrous), vue par ronde
+- [x] S3-02 Glisser-déposer (dnd-kit), verrouillage automatique au déplacement, cadenas, indicateurs (places libres, conflits de secteur, score moyen), colonne « Non placés »
+- [x] S3-03 Exports du plan : Excel (une feuille par ronde) et page imprimable (une page par table et par ronde, gros caractères)
+- [x] S3-04 Onglet Publication : aperçu du courriel, « Publier » (→ PUBLISHED, lots de 20 avec reprise, EmailLog, confirmation), republication intelligente (empreinte par inscrit), rappel, demandes de consentement groupées (S2-15) — D-28
+- [x] S3-05 Vue participant : « Ma table » par ronde, « Mes jumelages » (cartes, raisons, coordonnées quand les deux sont présents)
+- [x] S3-06 Onglet Jour J : liste alphabétique, recherche instantanée, « Présent » / annuler, compteur, ajout sur place, mode plein écran tablette, « Terminer l'événement » — D-29
+- [x] S3-07 `billing.ts` : relevé immuable + test d'intégration prouvant l'absence de mise à jour; `pnpm billing:report --month AAAA-MM` — D-30
+- [x] S3-08 Dupliquer / archiver / QR (livrés en S1-S2)
+- [x] S3-09 Playwright : parcours complet (inscription → matching → tables → publication → participant → check-in → clôture)
+- [x] S3-10 Seed : matching et placement sur l'événement ouvert et sur l'événement passé
 
 ## Semaine 4 — Finition et production
 - [ ] S4-01 … S4-10 (voir PLAN.md)

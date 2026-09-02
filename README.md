@@ -67,7 +67,7 @@ Pour repartir de zéro : `pnpm db:reset && pnpm db:seed`.
 | `pnpm db:migrate`, `pnpm db:deploy`, `pnpm db:reset`, `pnpm db:seed`, `pnpm db:studio` | Prisma |
 | `pnpm first-run [--database-url …]` | Crée `.env` (secrets générés), applique les migrations et charge la démo |
 | `pnpm create-org --slug x --name "…" --owner-email … --owner-name "…"` | Crée une organisation et son compte OWNER (mot de passe temporaire affiché) |
-| `pnpm billing:report --month AAAA-MM` | Rapport de facturation CSV (semaine 3) |
+| `pnpm billing:report --month AAAA-MM` | Rapport de facturation CSV (relevés figés du mois) |
 
 Un hook Husky exécute `lint` + `typecheck` avant chaque commit.
 

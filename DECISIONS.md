@@ -221,3 +221,34 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   Toute animation respecte `prefers-reduced-motion` et n'anime que `transform`/`opacity`.
 - **Raison** : un seul langage visuel, formulaires inchangés (FormData, validation, Playwright),
   et des sources modifiables (textes français, marque) sans dépendre d'un paquet tiers.
+
+## D-28 — Publication : file d'envoi pilotée par le navigateur, par lots de 20
+- **Contexte** : publier à 300 inscrits, c'est 300 courriels; une seule action serveur dépasserait la
+  limite de temps d'une fonction Vercel, et une file de tâches (Redis, cron) ajouterait une
+  infrastructure hors Phase 1.
+- **Décision** : « Publier » ne fait que passer l'événement à PUBLISHED. L'onglet Publication appelle
+  ensuite l'action `sendBatch` en boucle; chaque appel envoie au plus 20 courriels (un essai +
+  une reprise chacun), met à jour l'empreinte `publishedMatchesHash` des inscrits servis et renvoie
+  ce qui reste. La barre de progression suit; un lot entièrement en échec arrête la boucle. Les
+  rappels et les demandes de consentement groupées utilisent la même mécanique. L'empreinte
+  (partenaires + places, hachage SHA-256) fait qu'une republication n'écrit qu'aux inscrits
+  concernés.
+- **Raison** : aucune infrastructure supplémentaire, reprise naturelle (relancer n'envoie que ce qui
+  manque), et une trace par courriel dans `EmailLog`.
+
+## D-29 — Jour J : mode plein écran dans un groupe de routes sans menu
+- **Décision** : `/admin/events/[id]/jour-j/plein-ecran` et `/admin/events/[id]/tables/imprimer`
+  vivent dans le groupe `(kiosk)` : même authentification que l'admin, aucune barre latérale ni
+  onglet, gros contrôles. Le check-in et l'ajout sur place sont les mêmes actions serveur que
+  l'onglet Jour J.
+- **Raison** : sur une tablette à l'entrée, chaque pixel compte et rien ne doit distraire; une page
+  d'impression sans chrome donne un PDF propre via « Enregistrer en PDF » sans bibliothèque PDF.
+
+## D-30 — Relevé de facturation figé; rappel horodaté au lancement
+- **Décision** : `BillingSnapshot` est écrit une seule fois par « Terminer l'événement » (même
+  transaction que NO_SHOW et COMPLETED); il n'existe aucune fonction de mise à jour et une
+  seconde écriture échoue (contrainte unique). Un test d'intégration modifie les inscriptions après
+  coup et vérifie que le relevé ne bouge pas. `Event.reminderSentAt` marque le début de la dernière
+  campagne de rappel; les inscrits déjà servis sont reconnus par leurs entrées `EmailLog` postérieures.
+- **Raison** : la facturation (section 9) doit être auditable et stable; un marqueur par campagne
+  évite un champ de plus par inscription.

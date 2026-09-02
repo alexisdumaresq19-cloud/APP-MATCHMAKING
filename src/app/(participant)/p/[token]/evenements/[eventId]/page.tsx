@@ -5,6 +5,8 @@ import { ArrowLeftIcon, CalendarPlusIcon, MapPinIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FormAlert } from "@/components/shared/form-field";
 import { ConsentForm } from "@/components/participant/consent-form";
+import { MatchCards, SeatCards } from "@/components/participant/event-view";
+import { TextReveal } from "@/components/motion/text-reveal";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
 import { formatDate, formatDateRange } from "@/lib/dates";
 import { prisma } from "@/lib/db/prisma";
@@ -12,6 +14,7 @@ import { registrationStatusLabel } from "@/lib/labels";
 import { paragraphs } from "@/lib/text";
 import { acceptConsent } from "@/server/actions/participant";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
+import { getParticipantEventView } from "@/server/queries/participant";
 
 export const metadata: Metadata = { title: "Événement" };
 
@@ -36,6 +39,10 @@ export default async function ParticipantEventPage({
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venueAddress)}`
     : null;
   const isPast = (event.endsAt ?? event.startsAt) < new Date();
+  const view =
+    registration.status === "CANCELLED"
+      ? { matches: [], seats: [], published: false }
+      : await getParticipantEventView(registration, event);
 
   return (
     <div className="space-y-8">
@@ -54,7 +61,11 @@ export default async function ParticipantEventPage({
             <Badge variant="outline">Terminé</Badge>
           ) : null}
         </div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{event.name}</h1>
+        <TextReveal
+          as="h1"
+          text={event.name}
+          className="text-2xl font-bold tracking-tight sm:text-3xl"
+        />
         <p className="text-base">
           {formatDateRange(event.startsAt, event.endsAt, organization.timezone)}
         </p>
@@ -102,12 +113,38 @@ export default async function ParticipantEventPage({
         </section>
       ) : null}
 
+      {view.published ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Ma table</h2>
+          <SeatCards
+            seats={view.seats}
+            roundCount={event.roundCount}
+            timezone={organization.timezone}
+          />
+        </section>
+      ) : null}
+
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Mes jumelages</h2>
+        <h2 className="text-lg font-semibold">
+          Mes jumelages
+          {view.matches.length ? (
+            <span className="ml-2 text-base font-normal text-muted-foreground">
+              {view.matches.length}
+            </span>
+          ) : null}
+        </h2>
         {registration.status === "CANCELLED" ? (
           <FormAlert variant="info" message="Votre inscription à cet événement a été annulée." />
-        ) : event.publishedAt ? (
-          <FormAlert variant="info" message="Vos jumelages seront affichés ici sous peu." />
+        ) : view.published ? (
+          <>
+            {registration.status !== "CHECKED_IN" && view.matches.length ? (
+              <p className="text-sm text-muted-foreground">
+                Les coordonnées de vos jumelages apparaîtront ici une fois que vous serez tous les
+                deux arrivés à l'événement.
+              </p>
+            ) : null}
+            <MatchCards matches={view.matches} />
+          </>
         ) : (
           <FormAlert
             variant="info"

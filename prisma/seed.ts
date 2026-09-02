@@ -10,6 +10,7 @@ import { SECTOR_TAGS } from "../src/lib/defaults/sector-tags";
 import { DEFAULT_SECTORS, affinityFor } from "../src/lib/defaults/sectors";
 import { REGIONS } from "../src/lib/regions";
 import { runMatchingForEvent } from "../src/server/services/matching";
+import { runSeatingForEvent } from "../src/server/services/seating";
 
 const prisma = new PrismaClient();
 faker.seed(20261015);
@@ -368,11 +369,18 @@ async function main() {
     },
   });
 
-  // Matching on the OPEN event so the demo is alive from the first launch (seating: week 3).
+  // Matching and seating on the OPEN event so the demo is alive from the first launch.
   const run = await runMatchingForEvent(openEvent.id, organization.id, { actorType: "system" });
   console.log(
     `Matching: ${run.summary.totalMatches} jumelages pour ${run.summary.eligible} inscrits (score moyen ${run.summary.averageScore}).`,
   );
+  const seating = await runSeatingForEvent(openEvent.id, organization.id, { actorType: "system" });
+  console.log(
+    `Tables: ${seating.placed} places attribuées sur ${seating.rounds} ronde(s), ${seating.unplaced} sans place.`,
+  );
+  // The past event also gets matches and a table plan: « déjà rencontrés » then means something.
+  await runMatchingForEvent(pastEvent.id, organization.id, { actorType: "system" });
+  await runSeatingForEvent(pastEvent.id, organization.id, { actorType: "system" });
 
   console.log(`Done. Organization "demo" — organizer owner@demo.local / ${DEMO_PASSWORD}`);
   console.log(`Public page: /e/demo/${openEvent.slug}`);

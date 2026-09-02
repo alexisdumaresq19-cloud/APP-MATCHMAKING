@@ -113,3 +113,23 @@ Si vous préférez créer la base vous-même sur https://neon.tech, ajoutez `DAT
   chaîne de connexion dans `.env` est incorrecte.
 - Le port 3000 est occupé → `pnpm dev -p 3001`.
 - Repartir de zéro → `pnpm db:reset && pnpm db:seed` (efface toutes les données locales).
+
+## Semaine 3 : des tables au jour J
+
+1. **Tables** (onglet de l'événement) : ouvrez « Configuration » pour fixer tables, places, rondes et
+   noms, puis « Placer automatiquement ». Glissez une personne vers une autre table pour corriger :
+   la place se verrouille (cadenas) et le placement automatique ne la touchera plus. « Excel »
+   donne une feuille par ronde; « Imprimer » ouvre une page par table (choisissez « Enregistrer en
+   PDF » dans la boîte d'impression).
+2. **Publication** : l'aperçu montre le courriel tel que chaque participant le recevra. « Publier les
+   jumelages » ferme les inscriptions et envoie les courriels par lots de 20 avec une barre de
+   progression; relancer plus tard n'écrit qu'aux inscrits dont les jumelages ou la table ont
+   changé. « Envoyer un rappel » la veille, « Demander les consentements » pour les inscrits
+   importés ou ajoutés à la main. En mode test, tout se retrouve dans « Courriels (test) ».
+3. **Espace participant** : le lien personnel (dans le courriel) ouvre « Ma table » (gros chiffres,
+   par ronde) et « Mes jumelages » (cartes avec les raisons en français). Les coordonnées d'un
+   jumelage n'apparaissent qu'une fois les deux personnes arrivées.
+4. **Jour J** : recherche instantanée, bouton « Présent », « Ajouter sur place » pour les arrivées
+   surprises, « Plein écran (tablette) » pour l'accueil. « Terminer l'événement » marque les absents,
+   fige le relevé de facturation et passe l'événement à « Terminé ». Le rapport mensuel :
+   `pnpm billing:report --month AAAA-MM`.

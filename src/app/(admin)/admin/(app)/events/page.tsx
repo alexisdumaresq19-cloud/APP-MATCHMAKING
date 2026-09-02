@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CalendarPlusIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/page-header";
@@ -58,15 +59,16 @@ export default async function EventsPage({
         ))}
       </div>
       {events.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-base text-muted-foreground">Aucun événement dans cette liste.</p>
-          <Link
-            href="/admin/events/new"
-            className="mt-3 inline-block text-primary underline underline-offset-4"
-          >
-            Créer un événement
-          </Link>
-        </div>
+        <EmptyState
+          icon="calendar-plus"
+          title="Aucun événement dans cette liste"
+          description="Un événement, c'est une date, un lieu et des tables. Le reste suit."
+          action={
+            <Link href="/admin/events/new" className={buttonVariants({ size: "lg" })}>
+              Créer un événement
+            </Link>
+          }
+        />
       ) : (
         <ul className="divide-y rounded-lg border bg-card">
           {events.map((event) => (

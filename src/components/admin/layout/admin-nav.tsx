@@ -2,21 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  CalendarDaysIcon,
-  InboxIcon,
-  LayoutDashboardIcon,
-  SettingsIcon,
-  UsersIcon,
-} from "lucide-react";
 import type { OrganizerRole } from "@prisma/client";
+import { AnimatedIcon, type AnimatedIconName } from "@/components/ui/animated-icon";
 import { cn } from "@/lib/utils";
 
-const ITEMS = [
-  { href: "/admin", label: "Tableau de bord", icon: LayoutDashboardIcon, exact: true },
-  { href: "/admin/events", label: "Événements", icon: CalendarDaysIcon, exact: false },
-  { href: "/admin/participants", label: "Participants", icon: UsersIcon, exact: false },
-  { href: "/admin/settings", label: "Paramètres", icon: SettingsIcon, exact: false },
+const ITEMS: { href: string; label: string; icon: AnimatedIconName; exact: boolean }[] = [
+  { href: "/admin", label: "Tableau de bord", icon: "layout-dashboard", exact: true },
+  { href: "/admin/events", label: "Événements", icon: "calendar-days", exact: false },
+  { href: "/admin/participants", label: "Participants", icon: "users", exact: false },
+  { href: "/admin/settings", label: "Paramètres", icon: "settings", exact: false },
 ];
 
 export function AdminNav({
@@ -30,7 +24,12 @@ export function AdminNav({
   const items = showMailbox
     ? [
         ...ITEMS,
-        { href: "/admin/courriels", label: "Courriels (test)", icon: InboxIcon, exact: false },
+        {
+          href: "/admin/courriels",
+          label: "Courriels (test)",
+          icon: "inbox" as const,
+          exact: false,
+        },
       ]
     : ITEMS;
   return (
@@ -44,13 +43,18 @@ export function AdminNav({
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
+                  "al-group flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
                   active
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <item.icon className="size-4 shrink-0" aria-hidden="true" />
+                <AnimatedIcon
+                  name={item.icon}
+                  size={18}
+                  primaryColor="currentColor"
+                  secondaryColor="currentColor"
+                />
                 {item.label}
               </Link>
             </li>

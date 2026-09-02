@@ -1,7 +1,9 @@
 "use client";
 
-import { SparklesIcon } from "lucide-react";
+import { useState } from "react";
+import { ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -49,6 +51,13 @@ export function SectorChecklist({
   const differsFromSuggestions =
     suggested.length > 0 &&
     (suggested.length !== value.length || suggested.some((sid) => !selected.has(sid)));
+  // With suggestions, the other sectors are folded away to keep the step short (one tap to open).
+  const [expanded, setExpanded] = useState(false);
+  const folded = suggested.length > 0 && !expanded;
+  const visible = folded
+    ? ordered.filter((s) => suggestedSet.has(s.id) || selected.has(s.id))
+    : ordered;
+  const hiddenCount = ordered.length - visible.length;
 
   function toggle(sectorId: string, checked: boolean) {
     if (checked) onChange(selected.has(sectorId) ? value : [...value, sectorId]);
@@ -66,7 +75,7 @@ export function SectorChecklist({
       {suggested.length ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-sm">
           <p className="flex items-center gap-2">
-            <SparklesIcon className="size-4 shrink-0 text-brand" aria-hidden="true" />
+            <AnimatedIcon name="wand-sparkles" size={18} play />
             <span>
               Nous avons pré-coché les secteurs qui collaborent le plus souvent avec le vôtre.
               Ajustez librement.
@@ -86,7 +95,7 @@ export function SectorChecklist({
         </div>
       ) : null}
       <ul className="grid gap-2 sm:grid-cols-2">
-        {ordered.map((sector) => {
+        {visible.map((sector) => {
           const checked = selected.has(sector.id);
           const isSuggested = suggestedSet.has(sector.id);
           const inputId = `${id}-${sector.id}`;
@@ -124,6 +133,19 @@ export function SectorChecklist({
           );
         })}
       </ul>
+      {folded && hiddenCount > 0 ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full sm:w-auto"
+          onClick={() => setExpanded(true)}
+          aria-controls={id}
+          aria-expanded={false}
+        >
+          <ChevronDownIcon aria-hidden="true" />
+          Voir les {hiddenCount} autres secteurs
+        </Button>
+      ) : null}
     </div>
   );
 }

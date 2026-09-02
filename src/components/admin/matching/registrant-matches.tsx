@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { BanIcon, PinIcon, PinOffIcon, UndoIcon, UserPlusIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { NativeSelect } from "@/components/shared/native-select";
 import { setMatchStatus } from "@/server/actions/matching";
 import type { PersonSummary, RegistrantMatches } from "@/server/queries/matching";
@@ -144,7 +145,8 @@ export function RegistrantMatchesCard({
           </li>
         ))}
         {proposed.length === 0 ? (
-          <li className="px-4 py-3 text-sm text-muted-foreground">
+          <li className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
+            <AnimatedIcon name="handshake" size={18} />
             Aucun jumelage proposé pour l'instant.
           </li>
         ) : null}
@@ -218,7 +220,7 @@ export function RegistrantMatchesCard({
         </NativeSelect>
         <Button type="submit" variant="outline" size="sm" disabled={pending || !manualPartner}>
           <UserPlusIcon aria-hidden="true" />
-          Épingler
+          Épingler cette paire
         </Button>
       </form>
     </article>

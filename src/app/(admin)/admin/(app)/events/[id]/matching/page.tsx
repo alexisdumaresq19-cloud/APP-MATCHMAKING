@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SearchIcon } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/shared/empty-state";
 import { FormAlert } from "@/components/shared/form-field";
+import { StatCard } from "@/components/shared/stat-card";
 import { RegistrantMatchesCard } from "@/components/admin/matching/registrant-matches";
 import { RunMatchingButton } from "@/components/admin/matching/run-matching-button";
 import { RuleSetForm } from "@/components/admin/settings/rule-set-form";
@@ -47,57 +48,54 @@ export default async function MatchingPage({
 
   return (
     <div className="space-y-8">
-      <section className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardDescription>Inscrits éligibles</CardDescription>
-            <CardTitle className="text-3xl tabular-nums">{overview.eligible}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {overview.ignored.length
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon="users"
+          label="Inscrits éligibles"
+          value={overview.eligible}
+          hint={
+            overview.ignored.length
               ? `${overview.ignored.length} ignoré${overview.ignored.length > 1 ? "s" : ""} (sans secteur)`
-              : "Tous ont un secteur"}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Jumelages</CardDescription>
-            <CardTitle className="text-3xl tabular-nums">{overview.totalMatches}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {overview.totalMatches
+              : "Tous ont un secteur"
+          }
+        />
+        <StatCard
+          icon="handshake"
+          label="Jumelages"
+          value={overview.totalMatches}
+          hint={
+            overview.totalMatches
               ? `Score moyen ${overview.averageScore} · ${overview.pinned} épinglé${overview.pinned > 1 ? "s" : ""} · ${overview.excluded} exclu${overview.excluded > 1 ? "s" : ""}`
-              : "Aucun calcul pour l'instant"}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Jeu de règles</CardDescription>
-            <CardTitle className="truncate text-xl">{overview.ruleSetName}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
+              : "Aucun calcul pour l'instant"
+          }
+        />
+        <StatCard
+          icon="sliders-horizontal"
+          label="Jeu de règles"
+          value={<span>{overview.ruleSetName}</span>}
+          hint={
             <Link href="/admin/settings/regles" className="underline underline-offset-4">
               Gérer les jeux de règles
             </Link>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardDescription>Dernier calcul</CardDescription>
-            <CardTitle className="text-xl">
+          }
+        />
+        <StatCard
+          icon="sparkles"
+          label="Dernier calcul"
+          value={
+            <span>
               {overview.lastRun
                 ? formatDate(overview.lastRun, organization.timezone, "short")
                 : "Jamais"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RunMatchingButton
-              eventId={event.id}
-              hasMatches={hasMatches}
-              disabled={overview.eligible < 2}
-            />
-          </CardContent>
-        </Card>
+            </span>
+          }
+        >
+          <RunMatchingButton
+            eventId={event.id}
+            hasMatches={hasMatches}
+            disabled={overview.eligible < 2}
+          />
+        </StatCard>
       </section>
 
       {overview.fewMatches.length ? (
@@ -169,9 +167,12 @@ export default async function MatchingPage({
             </div>
           </form>
           {list.rows.length === 0 ? (
-            <p className="rounded-lg border border-dashed p-6 text-center text-base text-muted-foreground">
-              Aucun inscrit ne correspond.
-            </p>
+            <EmptyState
+              icon="search"
+              size="sm"
+              title="Aucun inscrit ne correspond"
+              description={q ? "Essayez un autre nom ou une autre entreprise." : undefined}
+            />
           ) : (
             <div className="space-y-4">
               {list.rows.map((row) => (

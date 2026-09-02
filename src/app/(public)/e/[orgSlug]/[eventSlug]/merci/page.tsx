@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MailCheckIcon } from "lucide-react";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { resolveTransportKind } from "@/lib/email/transport";
 import { getPublicEvent } from "@/server/queries/public";
 
@@ -19,8 +19,8 @@ export default async function ThankYouPage({
 
   return (
     <div className="space-y-6 text-center">
-      <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-brand/10 text-brand">
-        <MailCheckIcon className="size-8" aria-hidden="true" />
+      <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-brand/10">
+        <AnimatedIcon name="party-popper" size={40} play />
       </div>
       <h1 className="text-3xl font-bold tracking-tight">Merci!</h1>
       <p className="text-lg">
@@ -43,6 +43,23 @@ export default async function ThankYouPage({
           </p>
         </div>
       ) : null}
+      <ol className="grid gap-3 text-left sm:grid-cols-3">
+        {[
+          { icon: "mail-check", text: "Ouvrez le courriel et conservez votre lien personnel." },
+          { icon: "handshake", text: "Vos jumelages vous seront envoyés avant l'événement." },
+          { icon: "armchair", text: "Le jour J, votre table vous attend : tout est indiqué." },
+        ].map((step, index) => (
+          <li
+            key={step.icon}
+            className="al-group flex items-start gap-3 rounded-lg border bg-card p-3 text-sm sm:flex-col sm:items-center sm:text-center"
+          >
+            <AnimatedIcon name={step.icon as "mail-check" | "handshake" | "armchair"} size={26} />
+            <span>
+              <span className="font-semibold">{index + 1}.</span> {step.text}
+            </span>
+          </li>
+        ))}
+      </ol>
       <Link
         href={`/e/${orgSlug}/${eventSlug}`}
         className="inline-block text-brand underline underline-offset-4"

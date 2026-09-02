@@ -4,6 +4,9 @@ import { ArrowRightIcon, CalendarPlusIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { EmptyState } from "@/components/shared/empty-state";
+import { StatCard } from "@/components/shared/stat-card";
 import { PageHeader } from "@/components/admin/page-header";
 import { EventStatusBadge } from "@/components/admin/events/event-status-badge";
 import { requireOrganizer } from "@/lib/auth/session";
@@ -49,12 +52,21 @@ export default async function DashboardPage() {
         }
       />
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardDescription>Prochain événement</CardDescription>
-            <CardTitle className="text-xl">
-              {data.nextEvent ? data.nextEvent.name : "Aucun événement à venir"}
-            </CardTitle>
+        <Card className="al-group md:col-span-2">
+          <CardHeader className="flex flex-row items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1.5">
+              <CardDescription>Prochain événement</CardDescription>
+              <CardTitle className="text-xl">
+                {data.nextEvent ? data.nextEvent.name : "Aucun événement à venir"}
+              </CardTitle>
+            </div>
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand/10">
+              <AnimatedIcon
+                name={data.nextEvent ? "calendar-check" : "calendar-plus"}
+                size={22}
+                play
+              />
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.nextEvent ? (
@@ -90,18 +102,12 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
         <div className="grid gap-4">
-          <Card>
-            <CardHeader>
-              <CardDescription>Inscriptions (7 derniers jours)</CardDescription>
-              <CardTitle className="text-3xl">{data.recentRegistrations}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardDescription>Événements à venir</CardDescription>
-              <CardTitle className="text-3xl">{data.upcomingCount}</CardTitle>
-            </CardHeader>
-          </Card>
+          <StatCard
+            icon="trending-up"
+            label="Inscriptions (7 derniers jours)"
+            value={data.recentRegistrations}
+          />
+          <StatCard icon="calendar-days" label="Événements à venir" value={data.upcomingCount} />
         </div>
       </div>
 
@@ -112,7 +118,12 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
-              <p className="text-base text-muted-foreground">Rien à signaler. Tout est à jour!</p>
+              <EmptyState
+                icon="circle-check"
+                size="sm"
+                title="Tout est à jour!"
+                description="Rien à signaler pour l'instant."
+              />
             ) : (
               <ul className="space-y-2">
                 {tasks.map((task) => (
@@ -139,7 +150,17 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {events.length === 0 ? (
-              <p className="text-base text-muted-foreground">Aucun événement à venir.</p>
+              <EmptyState
+                icon="calendar-plus"
+                size="sm"
+                title="Aucun événement à venir"
+                description="Créez votre prochain événement pour ouvrir les inscriptions."
+                action={
+                  <Link href="/admin/events/new" className={buttonVariants({ variant: "outline" })}>
+                    Créer un événement
+                  </Link>
+                }
+              />
             ) : (
               <ul className="divide-y">
                 {events.slice(0, 6).map((event) => (

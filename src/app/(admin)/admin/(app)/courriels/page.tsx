@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { InboxIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/admin/page-header";
 import { FormAlert } from "@/components/shared/form-field";
 import { requireOrganizer } from "@/lib/auth/session";
@@ -58,13 +58,11 @@ export default async function MailboxPage() {
         description="Aucun service d'envoi n'est configuré : les courriels ne partent pas, ils sont affichés ici pour que vous puissiez cliquer sur les liens. Configurez RESEND_API_KEY ou SMTP pour l'envoi réel."
       />
       {emails.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <InboxIcon className="mx-auto size-8 text-muted-foreground" aria-hidden="true" />
-          <p className="mt-3 text-base text-muted-foreground">
-            Aucun courriel pour l'instant. Inscrivez-vous à un événement depuis sa page publique
-            pour en voir apparaître.
-          </p>
-        </div>
+        <EmptyState
+          icon="inbox"
+          title="Aucun courriel pour l'instant"
+          description="Inscrivez-vous à un événement depuis sa page publique pour en voir apparaître."
+        />
       ) : (
         <ul className="space-y-4">
           {emails.map((email) => (

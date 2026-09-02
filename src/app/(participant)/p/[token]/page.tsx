@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDaysIcon, ChevronRightIcon, MapPinIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { FormAlert } from "@/components/shared/form-field";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
 import { formatDateRange } from "@/lib/dates";
@@ -51,9 +52,12 @@ export default async function ParticipantHomePage({
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">Événements à venir</h2>
         {upcoming.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-4 text-base text-muted-foreground">
-            Aucun événement à venir pour l'instant.
-          </p>
+          <EmptyState
+            icon="calendar-days"
+            size="sm"
+            title="Aucun événement à venir pour l'instant"
+            description="Vous recevrez un courriel dès qu'une nouvelle rencontre sera ouverte."
+          />
         ) : (
           <ul className="space-y-3">
             {upcoming.map((registration) => (

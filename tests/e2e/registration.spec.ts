@@ -40,6 +40,8 @@ test.describe("Public registration and participant space", () => {
     await expect(
       sought.getByRole("checkbox", { name: /Entretien ménager et commercial/ }),
     ).toBeChecked();
+    // The other sectors are folded away; one tap shows them all.
+    await sought.getByRole("button", { name: /Voir les \d+ autres secteurs/ }).click();
     await expect(sought.getByRole("checkbox", { name: /^Juridique/ })).not.toBeChecked();
     await sought.getByRole("checkbox", { name: /^Juridique/ }).check();
     const needs = page.getByLabel("Ce que vous cherchez");

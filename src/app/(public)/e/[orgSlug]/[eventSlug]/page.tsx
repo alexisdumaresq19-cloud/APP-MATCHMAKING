@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarDaysIcon, MapPinIcon, UsersIcon } from "lucide-react";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { RegistrationForm } from "@/components/public/registration-form";
 import { FormAlert } from "@/components/shared/form-field";
 import { formatDate, formatDateRange } from "@/lib/dates";
@@ -74,7 +74,7 @@ export default async function PublicEventPage({ params }: { params: Params }) {
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.name}</h1>
         <dl className="space-y-3 text-base">
           <div className="flex items-start gap-3">
-            <CalendarDaysIcon className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden="true" />
+            <AnimatedIcon name="calendar-days" size={22} play className="mt-0.5" />
             <div>
               <dt className="sr-only">Date</dt>
               <dd className="font-medium">
@@ -84,7 +84,7 @@ export default async function PublicEventPage({ params }: { params: Params }) {
           </div>
           {event.venueName || event.venueAddress ? (
             <div className="flex items-start gap-3">
-              <MapPinIcon className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden="true" />
+              <AnimatedIcon name="map-pin" size={22} play className="mt-0.5" />
               <div>
                 <dt className="sr-only">Lieu</dt>
                 <dd>
@@ -110,7 +110,7 @@ export default async function PublicEventPage({ params }: { params: Params }) {
           ) : null}
           {spotsLeft !== null && availability.open ? (
             <div className="flex items-start gap-3">
-              <UsersIcon className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden="true" />
+              <AnimatedIcon name="users" size={22} play className="mt-0.5" />
               <div>
                 <dt className="sr-only">Places</dt>
                 <dd>{spotsLeft === 1 ? "Il reste 1 place" : `Il reste ${spotsLeft} places`}</dd>

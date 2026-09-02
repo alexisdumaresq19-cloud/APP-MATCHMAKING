@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { SparklesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { runMatching } from "@/server/actions/matching";
 
 export function RunMatchingButton({
@@ -22,6 +22,7 @@ export function RunMatchingButton({
     <Button
       type="button"
       size="lg"
+      className="al-group"
       disabled={pending || disabled}
       onClick={() =>
         startTransition(async () => {
@@ -34,7 +35,13 @@ export function RunMatchingButton({
         })
       }
     >
-      <SparklesIcon aria-hidden="true" />
+      <AnimatedIcon
+        name="sparkles"
+        size={18}
+        loop={pending ? 900 : undefined}
+        primaryColor="currentColor"
+        secondaryColor="currentColor"
+      />
       {pending ? "Calcul en cours…" : hasMatches ? "Recalculer le matching" : "Lancer le matching"}
     </Button>
   );

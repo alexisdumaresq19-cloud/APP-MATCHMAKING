@@ -29,8 +29,11 @@ test.describe("Week 2 — matching, settings, import/export", () => {
     await page.getByRole("button", { name: /Lancer le matching|Recalculer le matching/ }).click();
     await expect(page.getByText(/jumelages calculés/)).toBeVisible({ timeout: 60_000 });
     const firstCard = page.locator("article").first();
-    await expect(firstCard.getByRole("button", { name: "Épingler" }).first()).toBeVisible();
-    await firstCard.getByRole("button", { name: "Épingler" }).first().click();
+    // The refreshed list can take a while under load: wait for an enabled per-match button
+    // ("Épingler cette paire", the manual form, is disabled until a partner is chosen).
+    const pinButton = firstCard.getByRole("button", { name: "Épingler", exact: true }).first();
+    await expect(pinButton).toBeEnabled({ timeout: 60_000 });
+    await pinButton.click();
     await expect(page.getByText("Jumelage épinglé.")).toBeVisible();
     await expect(firstCard.getByText("Épinglé").first()).toBeVisible();
     await firstCard.getByRole("button", { name: "Désépingler" }).first().click();

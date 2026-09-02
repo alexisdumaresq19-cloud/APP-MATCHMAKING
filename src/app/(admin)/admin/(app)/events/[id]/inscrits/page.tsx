@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/shared/empty-state";
 import { FormAlert } from "@/components/shared/form-field";
 import {
   Table,
@@ -175,18 +176,25 @@ export default async function RegistrantsPage({
       />
 
       {result.total === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-base font-medium">
-            {totalActive === 0
-              ? "Aucun inscrit pour l'instant."
-              : "Aucun inscrit ne correspond à ces filtres."}
-          </p>
-          {totalActive === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              Partagez ce lien : <span className="font-mono break-all">{publicUrl}</span>
-            </p>
-          ) : null}
-        </div>
+        totalActive === 0 ? (
+          <EmptyState
+            icon="megaphone"
+            title="Aucun inscrit pour l'instant"
+            description={
+              <>
+                Partagez la page publique de l'événement :{" "}
+                <span className="font-mono break-all text-foreground">{publicUrl}</span>
+              </>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon="search"
+            size="sm"
+            title="Aucun inscrit ne correspond à ces filtres"
+            description="Élargissez la recherche ou retirez un filtre."
+          />
+        )
       ) : (
         <>
           <div className="overflow-x-auto rounded-lg border bg-card">

@@ -85,3 +85,20 @@ lié à sa fiche Mobbin. Verdict en tête, détails par écran ensuite.
 3. Gros chiffres pour ce qui se lit debout (numéro de table, heure de la ronde, compteur du jour J).
 4. Pastilles de statut cohérentes partout (mêmes libellés côté admin et côté participant).
 5. Pas d'éléments de marketplace (prix, compte à rebours, ventes incitatives).
+
+## Icônes animées (règles d'usage)
+
+Librairie : [`@animated-color-icons/lucide-react`](https://github.com/gorkem-bwl/animated-icons)
+(icônes Lucide, animations CSS, bicolores selon la marque de l'organisation). Composant :
+`src/components/ui/animated-icon.tsx` (`<AnimatedIcon name="sparkles" play />`), registre des noms
+dans le même fichier. Feuille de style : `src/styles/animated-icons.css`.
+
+- **Une seule animation « au chargement » par écran** (`play`) : l'icône du titre, de l'état vide
+  ou de la page « Merci ». Le reste s'anime **au survol** de sa carte ou de son bouton (classe
+  `al-group` sur le parent), jamais en boucle, sauf un état de chargement (`loop`).
+- **Toujours un sens** : l'icône illustre le contenu (jumelage → poignée de main, courriel →
+  enveloppe, table → fauteuil). Pas d'icône décorative sans lien avec le texte.
+- **Accessibilité** : `prefers-reduced-motion` désactive toutes les animations; les icônes sont
+  `aria-hidden` sauf si un `title` leur est donné.
+- Composants prêts : `EmptyState` (icône + titre + explication + action) et `StatCard` (chiffre clé
+  avec icône) dans `src/components/shared/`.

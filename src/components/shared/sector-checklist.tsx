@@ -7,6 +7,12 @@ import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { CheckMark } from "@/components/shared/check-mark";
 import { cn } from "@/lib/utils";
 
+/** "A, B et C" */
+function joinFrench(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} et ${names[names.length - 1]}`;
+}
+
 type Props = {
   id: string;
   /** Accessible name of the group (the visible label targets a div, which cannot be labelled). */
@@ -45,6 +51,7 @@ export function SectorChecklist({
 }: Props) {
   const suggestedSet = new Set(suggested);
   const selected = new Set(value);
+  const suggestedNames = sectors.filter((s) => suggestedSet.has(s.id)).map((s) => s.name);
   const ordered = [...sectors].sort((a, b) => {
     const rank = (s: { id: string }) => (suggestedSet.has(s.id) ? 0 : s.id === ownSectorId ? 2 : 1);
     return rank(a) - rank(b);
@@ -78,8 +85,8 @@ export function SectorChecklist({
           <p className="flex items-center gap-2">
             <AnimatedIcon name="wand-sparkles" size={18} play />
             <span>
-              Nous avons pré-coché les secteurs qui collaborent le plus souvent avec le vôtre.
-              Ajustez librement.
+              Nous avons pré-coché pour vous : {joinFrench(suggestedNames)}. Souhaitez-vous ajouter
+              d&apos;autres secteurs? Ajustez librement.
             </span>
           </p>
           {differsFromSuggestions ? (

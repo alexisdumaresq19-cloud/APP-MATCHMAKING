@@ -1,4 +1,5 @@
 import type { Event, Organization, Participant } from "@prisma/client";
+import { googleCalendarUrl } from "@/lib/calendar-links";
 import { formatDateRange } from "@/lib/dates";
 import { emailBrandOf } from "@/lib/email/brand";
 import { sendEmail } from "@/lib/email/send";
@@ -59,6 +60,14 @@ export async function sendRegistrationConfirmed(input: {
         needs={input.needs}
         soughtSectorNames={input.soughtSectorNames ?? []}
         participantUrl={participantUrl}
+        calendarIcsUrl={`${participantUrl}/evenements/${event.id}/calendrier.ics`}
+        googleCalendarUrl={googleCalendarUrl({
+          title: event.name,
+          start: event.startsAt,
+          end: event.endsAt,
+          location: venueLine(event),
+          details: `Organisé par ${organization.name}.`,
+        })}
       />
     ),
   });

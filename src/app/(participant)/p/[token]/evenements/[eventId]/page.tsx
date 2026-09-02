@@ -1,13 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, CalendarPlusIcon, MapPinIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  CalendarPlusIcon,
+  ExternalLinkIcon,
+  MapPinIcon,
+  TicketIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FormAlert } from "@/components/shared/form-field";
 import { ConsentForm } from "@/components/participant/consent-form";
 import { MatchCards, SeatCards } from "@/components/participant/event-view";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
+import { googleCalendarUrl } from "@/lib/calendar-links";
 import { formatDate, formatDateRange } from "@/lib/dates";
 import { prisma } from "@/lib/db/prisma";
 import { registrationStatusLabel } from "@/lib/labels";
@@ -39,6 +46,13 @@ export default async function ParticipantEventPage({
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venueAddress)}`
     : null;
   const isPast = (event.endsAt ?? event.startsAt) < new Date();
+  const calendarUrl = googleCalendarUrl({
+    title: event.name,
+    start: event.startsAt,
+    end: event.endsAt,
+    location: [event.venueName, event.venueAddress].filter(Boolean).join(", ") || null,
+    details: `Organisé par ${organization.name}.`,
+  });
   const view =
     registration.status === "CANCELLED"
       ? { matches: [], seats: [], published: false }
@@ -89,13 +103,35 @@ export default async function ParticipantEventPage({
           </p>
         ) : null}
         {!isPast && registration.status !== "CANCELLED" ? (
-          <a
-            href={`/p/${token}/evenements/${event.id}/calendrier.ics`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-base font-medium hover:bg-muted"
-          >
-            <CalendarPlusIcon className="size-5" aria-hidden="true" />
-            Ajouter à mon calendrier
-          </a>
+          <div className="flex flex-wrap gap-2">
+            {event.ticketUrl ? (
+              <a
+                href={event.ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-base font-medium text-brand-foreground hover:opacity-90"
+              >
+                <TicketIcon className="size-5" aria-hidden="true" />
+                Acheter mon billet
+                <ExternalLinkIcon className="size-4 opacity-70" aria-hidden="true" />
+              </a>
+            ) : null}
+            <a
+              href={`/p/${token}/evenements/${event.id}/calendrier.ics`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-base font-medium hover:bg-muted"
+            >
+              <CalendarPlusIcon className="size-5" aria-hidden="true" />
+              Ajouter à mon calendrier
+            </a>
+            <a
+              href={calendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-base font-medium hover:bg-muted"
+            >
+              Google Agenda
+            </a>
+          </div>
         ) : null}
       </section>
 

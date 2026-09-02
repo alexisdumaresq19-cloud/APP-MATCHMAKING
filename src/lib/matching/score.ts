@@ -10,6 +10,10 @@ import {
 } from "./types";
 
 export const NEUTRAL_SCORE = 50;
+/** Complementarity when each side sought the other's sector (the client's "ET" case). */
+export const SOUGHT_MUTUAL_SCORE = 100;
+/** Complementarity when one side sought the other's sector (the client's "OU" case). */
+export const SOUGHT_ONE_WAY_SCORE = 70;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -38,21 +42,25 @@ export function scorePair(
 
   const aToB = matchOffersToNeeds(a.offers, b.needs);
   const bToA = matchOffersToNeeds(b.offers, a.needs);
-  // A sought sector ("Avec qui aimeriez-vous collaborer ?") counts as one extra need per side,
-  // satisfied when the other participant belongs to one of the sought sectors.
+  // Free-text tags: share of both sides' needs satisfied by the other's offers (capped at 4 needs).
+  const tagNeeds = a.needs.length + b.needs.length;
+  const tagScore = tagNeeds
+    ? Math.min(100, (100 * (aToB.needsSatisfied + bToA.needsSatisfied)) / Math.min(4, tagNeeds))
+    : 0;
+  // Sought sectors ("Avec qui voulez-vous collaborer ?"), the client's rule: the pair is a match
+  // when B's sector is in A's list and/or A's sector is in B's list. Mutual beats one-way, and
+  // the sector rule never scores lower than the free-text tags.
   const aSought = a.soughtSectorIds ?? [];
   const bSought = b.soughtSectorIds ?? [];
   const bSectorSoughtByA = Boolean(b.sectorId && aSought.includes(b.sectorId));
   const aSectorSoughtByB = Boolean(a.sectorId && bSought.includes(a.sectorId));
-  const needsA = a.needs.length + (aSought.length ? 1 : 0);
-  const needsB = b.needs.length + (bSought.length ? 1 : 0);
-  const satisfied =
-    aToB.needsSatisfied +
-    bToA.needsSatisfied +
-    (bSectorSoughtByA ? 1 : 0) +
-    (aSectorSoughtByB ? 1 : 0);
-  const denominator = Math.max(1, Math.min(4, needsA + needsB));
-  const complementarity = Math.min(100, (100 * satisfied) / denominator);
+  const soughtScore =
+    bSectorSoughtByA && aSectorSoughtByB
+      ? SOUGHT_MUTUAL_SCORE
+      : bSectorSoughtByA || aSectorSoughtByB
+        ? SOUGHT_ONE_WAY_SCORE
+        : 0;
+  const complementarity = Math.max(tagScore, soughtScore);
 
   const sectorAffinity =
     a.sectorId && b.sectorId ? clamp(affinity(a.sectorId, b.sectorId), 0, 100) : NEUTRAL_SCORE;

@@ -75,8 +75,16 @@ test.describe("Public registration and participant space", () => {
     )
       .map((s) => s.name)
       .sort();
+    // The five pre-checked sectors of a daycare (guideline examples) plus the one added by hand.
     expect(soughtNames).toEqual(
-      ["Entretien ménager et commercial", "Juridique", "Ressources éducatives"].sort(),
+      [
+        "Animation et loisirs",
+        "Entretien ménager et commercial",
+        "Juridique",
+        "Ressources éducatives",
+        "Ressources humaines et formation",
+        "Restauration et traiteur",
+      ].sort(),
     );
     expect(participant.registrations).toHaveLength(1);
     expect(participant.consents).toHaveLength(1);

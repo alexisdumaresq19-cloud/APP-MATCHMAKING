@@ -149,7 +149,7 @@ async function main() {
       .map((other) => ({ id: other.id, score: affinityFor(slug, other.slug) }))
       .filter((entry) => entry.score >= 65)
       .sort((x, y) => y.score - x.score)
-      .slice(0, 4)
+      .slice(0, 5)
       .map((entry) => entry.id);
 
   const ruleSet = await prisma.matchingRuleSet.create({

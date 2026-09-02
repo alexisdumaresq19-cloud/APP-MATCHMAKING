@@ -236,6 +236,7 @@ model Event {
   endsAt                DateTime?
   venueName             String?
   venueAddress          String?
+  ticketUrl             String? // ADDED: external ticketing link (Eventbrite, Zeffy…), shown as « Acheter mon billet »
   capacity              Int? // max registrations (null = unlimited)
   registrationOpensAt   DateTime?
   registrationClosesAt  DateTime?

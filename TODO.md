@@ -68,6 +68,11 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] S4-09 Documentation : README (déploiement pas à pas, sauvegarde, checklist, FAQ), `docs/GUIDE_ORGANISATRICE.md`, `docs/LOI25.md`
 - [x] S4-10 Production : Vercel + Neon en ligne (app-matchmaking.vercel.app), `pnpm create-org`, `pnpm remove-demo` · [ ] domaine final + organisation réelle (action de la cliente)
 
+## Ligne directrice de la cliente (septembre 2026)
+- [x] Vérification point par point : `docs/LIGNE_DIRECTRICE.md` (livré / partiel / Phase 2)
+- [x] Règle « ET/OU » des secteurs recherchés dans le score (D-34), défauts couvrant ses exemples
+- [x] Lien de billetterie externe + ajout au calendrier (`.ics`, Google Agenda)
+
 ## Liste de vérification sécurité (section 9)
 - [x] Toutes les entrées validées avec Zod côté serveur (`src/lib/validation`)
 - [x] Isolation par organisation sur chaque requête + test A/B (`tests/integration/org-scope.test.ts`)

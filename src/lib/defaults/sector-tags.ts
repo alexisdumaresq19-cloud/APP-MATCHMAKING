@@ -78,6 +78,22 @@ export const SECTOR_TAGS: Record<string, { offers: string[]; needs: string[] }> 
     offers: ["photographe", "vidéo corporative", "photos de produits", "photos immobilières"],
     needs: ["événements", "immobilier", "marketing", "commerces"],
   },
+  "animation-loisirs": {
+    offers: ["animation", "activités pour enfants", "ateliers créatifs", "spectacles"],
+    needs: ["garderies", "écoles", "événements", "marketing", "assurance"],
+  },
+  "agriculture-producteurs-locaux": {
+    offers: ["produits locaux", "légumes de saison", "produits fermiers", "paniers"],
+    needs: ["restaurants", "épiceries", "livraison", "site web", "marketing"],
+  },
+  "services-administratifs-traduction": {
+    offers: ["secrétariat", "traduction", "adjointe virtuelle", "saisie de données"],
+    needs: ["cabinets professionnels", "PME", "logiciel", "comptabilité"],
+  },
+  "entretien-reparation-equipements": {
+    offers: ["maintenance d'équipements", "réparation", "entretien de cuisine", "CVC"],
+    needs: ["restaurants", "immeubles", "garderies", "pièces", "assurance"],
+  },
   autre: {
     offers: ["services divers", "consultation"],
     needs: ["partenariats", "marketing", "comptabilité"],

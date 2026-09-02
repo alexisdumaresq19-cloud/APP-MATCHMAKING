@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CalendarPlusIcon, ExternalLinkIcon, TicketIcon } from "lucide-react";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { buttonVariants } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { RegistrationForm } from "@/components/public/registration-form";
 import { FormAlert } from "@/components/shared/form-field";
+import { googleCalendarUrl } from "@/lib/calendar-links";
 import { formatDate, formatDateRange } from "@/lib/dates";
 import { REGIONS } from "@/lib/regions";
 import { paragraphs } from "@/lib/text";
@@ -69,6 +72,14 @@ export default async function PublicEventPage({ params }: { params: Params }) {
     : null;
   const spotsLeft =
     event.capacity !== null ? Math.max(0, event.capacity - event.activeRegistrations) : null;
+  const finished = (event.endsAt ?? event.startsAt) < new Date();
+  const calendarUrl = googleCalendarUrl({
+    title: event.name,
+    start: event.startsAt,
+    end: event.endsAt,
+    location: [event.venueName, event.venueAddress].filter(Boolean).join(", ") || null,
+    details: `Organisé par ${organization.name}.`,
+  });
 
   return (
     <div className="space-y-8">
@@ -131,6 +142,37 @@ export default async function PublicEventPage({ params }: { params: Params }) {
                 {p}
               </p>
             ))}
+          </div>
+        ) : null}
+        {!finished ? (
+          <div className="flex flex-wrap gap-2">
+            {event.ticketUrl ? (
+              <a
+                href={event.ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonVariants({ size: "lg" })}
+              >
+                <TicketIcon aria-hidden="true" />
+                Acheter mon billet
+                <ExternalLinkIcon aria-hidden="true" className="opacity-70" />
+              </a>
+            ) : null}
+            <a
+              href={`/e/${orgSlug}/${eventSlug}/calendrier.ics`}
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              <CalendarPlusIcon aria-hidden="true" />
+              Ajouter à mon calendrier
+            </a>
+            <a
+              href={calendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              Google Agenda
+            </a>
           </div>
         ) : null}
       </section>

@@ -285,3 +285,19 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
 - **Raison** : la Loi 25 exige la preuve du texte accepté et une réponse en 30 jours; la section 9
   exige que la facturation ne bouge pas. Séparer « demande » et « anonymisation » donne à
   l'Organisatrice le temps de vérifier l'identité et une trace de chaque décision.
+
+## D-34 — Ligne directrice de la cliente : règle « ET/OU » des secteurs, défauts et billetterie
+- **Contexte** : le document de la cliente demande que les entreprises n'aient rien à écrire, qu'elles
+  cochent « avec qui collaborer » dans une liste pré-remplie d'après leur secteur, et que la paire
+  soit validée « si le secteur de B est dans la liste de A ET/OU si le secteur de A est dans la
+  liste de B ». Il donne trois exemples de matrice (garderie, restaurant, cabinet d'avocats).
+- **Décision** : la complémentarité devient `max(étiquettes, secteurs)` avec secteurs = 100 (les deux
+  sens) ou 70 (un sens); les étiquettes libres restent facultatives et ne peuvent qu'améliorer le
+  score. Les secteurs et affinités par défaut couvrent ses exemples (animation et loisirs,
+  producteurs locaux, services administratifs et traduction, entretien d'équipements), la même
+  matrice sert à `create-org` et au seed, et jusqu'à 5 secteurs sont pré-cochés, nommés dans le
+  message. Le calendrier (`.ics` + Google Agenda) est offert sur la page publique et dans l'espace
+  participant; « Acheter mon billet » pointe vers une billetterie externe (`Event.ticketUrl`).
+- **Raison** : respecter mot pour mot la logique qu'elle décrit sans casser le modèle de score
+  (poids ajustables, raisons en français). Le paiement intégré, l'annuaire Google Places, la
+  messagerie et le carnet d'adresses restent en Phase 2 (`docs/LIGNE_DIRECTRICE.md`).

@@ -13,6 +13,9 @@ export type RegistrationConfirmedProps = {
   needs: string[];
   soughtSectorNames?: string[];
   participantUrl: string;
+  /** « Ajouter à mon calendrier » (guideline, section 3): .ics for Apple/Outlook, Google Agenda. */
+  calendarIcsUrl?: string;
+  googleCalendarUrl?: string;
 };
 
 export function RegistrationConfirmedEmail(props: RegistrationConfirmedProps) {
@@ -54,6 +57,14 @@ export function RegistrationConfirmedEmail(props: RegistrationConfirmedProps) {
           </Text>
         ) : null}
       </Section>
+      {props.calendarIcsUrl || props.googleCalendarUrl ? (
+        <Text style={emailStyles.paragraph}>
+          Ajouter à mon calendrier :{" "}
+          {props.calendarIcsUrl ? <a href={props.calendarIcsUrl}>Apple, Outlook (.ics)</a> : null}
+          {props.calendarIcsUrl && props.googleCalendarUrl ? " · " : null}
+          {props.googleCalendarUrl ? <a href={props.googleCalendarUrl}>Google Agenda</a> : null}
+        </Text>
+      ) : null}
       <Text style={emailStyles.paragraph}>
         Vos jumelages vous seront envoyés avant l'événement. D'ici là, vous pouvez consulter et
         modifier votre profil à tout moment grâce à votre lien personnel :

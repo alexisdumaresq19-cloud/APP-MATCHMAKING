@@ -5,7 +5,7 @@ import { pairKey } from "@/lib/matching";
 /** Affinity from which a sector is pre-checked in "Avec qui aimeriez-vous collaborer ?". */
 export const SUGGESTION_MIN_AFFINITY = 65;
 /** Maximum number of pre-checked sectors. */
-export const SUGGESTION_MAX = 4;
+export const SUGGESTION_MAX = 5;
 
 export type SuggestedSectorsMap = Record<string, string[]>;
 

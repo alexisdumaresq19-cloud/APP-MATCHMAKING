@@ -37,12 +37,19 @@ même région. »
 
 À l'inscription, après avoir choisi son secteur, chaque entreprise voit la liste de vos secteurs
 avec, **pré-cochés**, ceux qui collaborent le plus souvent avec le sien : les secteurs dont
-l'affinité avec le sien est **≥ 65** dans votre matrice (4 au maximum, les plus forts d'abord).
+l'affinité avec le sien est **≥ 65** dans votre matrice (5 au maximum, les plus forts d'abord).
+Le message nomme les secteurs pré-cochés (« Nous avons pré-coché pour vous : Entretien ménager et
+commercial, Animation et loisirs… Souhaitez-vous ajouter d'autres secteurs? »).
 Elle peut en ajouter ou en retirer librement. Le champ libre « Ce que vous cherchez » devient
 facultatif : il faut au moins un secteur coché **ou** un besoin écrit. Résultat : moins de friction
 à l'inscription, et un jumelage qui « réfléchit seul » à partir de votre matrice.
 
 Pour changer ce qui est pré-coché, ajustez la matrice dans **Paramètres → Affinités**.
+
+La règle de la ligne directrice s'applique ensuite telle quelle : une paire est **validée** quand le
+secteur de B est dans la liste de A **et/ou** le secteur de A est dans la liste de B. Les deux sens
+donnent une complémentarité de 100, un seul sens 70; les étiquettes écrites ne peuvent jamais faire
+descendre ce résultat, elles ne peuvent que l'égaler ou le dépasser.
 
 ## Détails techniques
 
@@ -52,10 +59,11 @@ Code : `src/lib/matching/` (TypeScript pur, sans dépendance à la base de donn�
 ### Score d'une paire (`score.ts`)
 
 ```
-besoins(X)      = étiquettes « ce que je cherche » de X + 1 si X a coché ≥ 1 secteur recherché
-satisfaits      = besoins de B satisfaits par A + besoins de A satisfaits par B
-                  + 1 si secteur(B) ∈ secteurs recherchés(A) + 1 si secteur(A) ∈ secteurs recherchés(B)
-complementarity = 100 × satisfaits / max(1, min(4, besoins(A) + besoins(B))), plafonné à 100
+étiquettes      = 100 × (besoins de B satisfaits par A + besoins de A satisfaits par B)
+                  / min(4, besoins(A) + besoins(B))   · 0 si aucun besoin écrit · plafonné à 100
+secteurs        = 100 si secteur(B) ∈ recherchés(A) ET secteur(A) ∈ recherchés(B)
+                  · 70 si un seul des deux (règle « ET/OU » de la ligne directrice) · 0 sinon
+complementarity = max(étiquettes, secteurs)
 sectorAffinity  = affinité(secteur A, secteur B)   (50 si un secteur manque)
 region          = 100 même région · 60 régions voisines (annexe B) · 20 sinon · 50 si inconnue
 novelty         = 0 si déjà rencontrés (même table à un événement COMPLETED) · 100 sinon
@@ -74,7 +82,7 @@ secteur recherché de part et d'autre (`aSectorSoughtByB`, `bSectorSoughtByA`), 
 voisine, rencontre passée, pénalités. `reasons.ts` en tire les phrases affichées.
 
 Les secteurs pré-cochés viennent de `src/server/services/sought-sectors.ts` (`suggestedSectorsMap`,
-affinité ≥ 65, 4 max). Les listes sont figées dans `EventRegistration.soughtSectorsSnapshot` au
+affinité ≥ 65, 5 max). Les listes sont figées dans `EventRegistration.soughtSectorsSnapshot` au
 moment de l'inscription, comme les offres et besoins.
 
 ### Sélection (`select.ts`)

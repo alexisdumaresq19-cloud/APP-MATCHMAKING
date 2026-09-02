@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EventStatus, RegistrationStatus } from "@prisma/client";
-import { cuidSchema, optionalInt, optionalText, requiredInt } from "./common";
+import { cuidSchema, optionalInt, optionalText, requiredInt, websiteSchema } from "./common";
 
 const localDateTime = z
   .string()
@@ -33,6 +33,7 @@ export const eventSchema = z.object({
   endsAt: optionalLocalDateTime,
   venueName: optionalText(120),
   venueAddress: optionalText(300),
+  ticketUrl: websiteSchema, // « Acheter mon billet » on the public page (guideline, section 3)
   capacity: optionalInt(1, 5000),
   registrationOpensAt: optionalLocalDateTime,
   registrationClosesAt: optionalLocalDateTime,

@@ -19,6 +19,7 @@ export type EventFormInitial = {
   endsAt: Date | null;
   venueName: string | null;
   venueAddress: string | null;
+  ticketUrl: string | null;
   capacity: number | null;
   registrationOpensAt: Date | null;
   registrationClosesAt: Date | null;
@@ -156,6 +157,24 @@ export function EventForm({ action, initial, ruleSets, timezone }: Props) {
             defaultValue={initial?.venueAddress ?? ""}
             className={inputClass}
             {...fieldAria("venueAddress", errors.venueAddress)}
+          />
+        </Field>
+        <Field
+          label="Lien de billetterie"
+          htmlFor="ticketUrl"
+          optionalLabel
+          error={errors.ticketUrl}
+          hint="Eventbrite, Zeffy, Le Point de vente… Un bouton « Acheter mon billet » s'affiche sur la page publique et dans l'espace participant."
+        >
+          <Input
+            id="ticketUrl"
+            name="ticketUrl"
+            type="url"
+            inputMode="url"
+            placeholder="https://"
+            defaultValue={initial?.ticketUrl ?? ""}
+            className={inputClass}
+            {...fieldAria("ticketUrl", errors.ticketUrl, "hint")}
           />
         </Field>
       </section>

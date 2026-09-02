@@ -201,9 +201,9 @@ describe("sought sectors (« Avec qui aimeriez-vous collaborer ? »)", () => {
     soughtSectorIds: ["bureaux", "garderie"],
   });
 
-  it("counts a sought sector as one need, satisfied when the other belongs to it", () => {
+  it("validates the pair when each side sought the other's sector (ET) or one did (OU)", () => {
     const pair = scorePair(garderie, entretien, rules, affinity);
-    // 2 needs (one sought list per side), both satisfied → 100
+    // Both sought each other → 100
     expect(pair.reasons.complementarity.score).toBe(100);
     expect(pair.reasons.complementarity.bSectorSoughtByA).toBe(true);
     expect(pair.reasons.complementarity.aSectorSoughtByB).toBe(true);
@@ -214,7 +214,7 @@ describe("sought sectors (« Avec qui aimeriez-vous collaborer ? »)", () => {
       rules,
       affinity,
     );
-    expect(oneWay.reasons.complementarity.score).toBe(50);
+    expect(oneWay.reasons.complementarity.score).toBe(70);
     expect(oneWay.reasons.complementarity.aSectorSoughtByB).toBe(false);
 
     const none = scorePair(
@@ -226,12 +226,20 @@ describe("sought sectors (« Avec qui aimeriez-vous collaborer ? »)", () => {
     expect(none.reasons.complementarity.score).toBe(0);
   });
 
-  it("mixes sought sectors with free-text needs (denominator capped at 4)", () => {
-    const a = { ...garderie, needs: ["entretien ménager", "traiteur", "photographe"] }; // 3 + 1 sought
-    const b = { ...entretien, needs: ["garderies"], soughtSectorIds: [] }; // 1 need, no sought
+  it("never lets weak free-text tags pull a sector match below the sector rule", () => {
+    const a = { ...garderie, needs: ["entretien ménager", "traiteur", "photographe"] };
+    const b = { ...entretien, needs: ["garderies"], soughtSectorIds: [] };
     const pair = scorePair(a, b, rules, affinity);
-    // satisfied: entretien ménager (a's need) + garderie sought by a → 2 / min(4, 5) = 50
-    expect(pair.reasons.complementarity.score).toBe(50);
+    // tags: 1 of min(4, 4) needs satisfied → 25; sector rule one way → 70; keep the best
+    expect(pair.reasons.complementarity.score).toBe(70);
+    const tagsOnly = scorePair(
+      { ...a, soughtSectorIds: [] },
+      { ...b, offers: ["entretien ménager", "traiteur"] },
+      rules,
+      affinity,
+    );
+    // no sector list: tags decide → 2 of 4 needs → 50
+    expect(tagsOnly.reasons.complementarity.score).toBe(50);
   });
 
   it("explains the sought sector in plain French, for both sides", () => {

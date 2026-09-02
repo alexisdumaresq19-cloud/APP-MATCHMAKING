@@ -8,7 +8,7 @@ import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth/password";
 import { hashConsentText, randomToken } from "../src/lib/crypto";
 import { defaultConsentText } from "../src/lib/defaults/consent-text";
-import { DEFAULT_SECTORS } from "../src/lib/defaults/sectors";
+import { DEFAULT_SECTORS, affinityFor } from "../src/lib/defaults/sectors";
 import { slugify } from "../src/lib/normalize";
 
 const prisma = new PrismaClient();
@@ -81,7 +81,8 @@ async function main() {
     include: { sectors: true },
   });
 
-  // Symmetric affinity matrix initialised at 50 (same sector: 10).
+  // Symmetric affinity matrix from the defaults (complementary pairs ≥ 65 are pre-checked at
+  // registration in « Avec qui voulez-vous collaborer? »; unlisted pairs 40–50, same sector 10).
   const rows = [];
   const sectors = [...organization.sectors].sort((a, b) => (a.id < b.id ? -1 : 1));
   for (let i = 0; i < sectors.length; i += 1) {
@@ -90,7 +91,7 @@ async function main() {
         organizationId: organization.id,
         fromSectorId: sectors[i].id,
         toSectorId: sectors[j].id,
-        score: i === j ? 10 : 50,
+        score: affinityFor(sectors[i].slug, sectors[j].slug),
       });
     }
   }

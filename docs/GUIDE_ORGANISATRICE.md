@@ -28,8 +28,11 @@ Menu **Réglages** :
 
 ## 3. Créer l'événement
 
-**Événements › Nouvel événement** : nom, date et heure, lieu, capacité, nombre de tables, places
-par table, nombre de tours et durée d'un tour, rencontres souhaitées par personne.
+**Événements › Nouvel événement** : nom, date et heure, lieu, lien de billetterie (Eventbrite,
+Zeffy… : un bouton « Acheter mon billet » apparaît sur la page publique), capacité, nombre de
+tables, places par table, nombre de tours et durée d'un tour, rencontres souhaitées par personne.
+Les visiteurs peuvent ajouter l'événement à leur calendrier (Apple/Outlook ou Google) dès la page
+publique.
 
 L'événement naît en **Brouillon**. Passez-le à **Ouvert** pour que la page publique accepte les
 inscriptions. Le bouton **QR** de l'onglet Détails donne une affiche à imprimer.
@@ -62,7 +65,7 @@ rencontres jumelées à la même table. Glissez-déposez pour ajuster; un cadena
 ## 7. Publier
 
 **Onglet Publication** : « Publier » envoie à chaque inscrit son courriel de jumelages (partenaires,
-raisons, table par tour, fichier calendrier). Les envois partent par lots de 20 avec une barre de
+raisons, table par tour). Les envois partent par lots de 20 avec une barre de
 progression; relancer n'envoie que ce qui manque. Une republication après un changement n'écrit
 qu'aux personnes concernées. Le **rappel** (la veille) s'envoie de la même façon.
 

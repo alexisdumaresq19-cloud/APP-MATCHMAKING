@@ -17,11 +17,13 @@ import { clientIpFromHeaders, rateLimit } from "@/lib/rate-limit";
 import { fieldErrorsOf, formDataToObject, type FieldErrors } from "@/lib/validation/common";
 import {
   MIN_FORM_SECONDS,
+  NEEDS_OR_SECTORS_MESSAGE,
   quickRegistrationSchema,
   registrationSchema,
 } from "@/lib/validation/registration";
 import { getPublicEvent, registrationAvailability } from "@/server/queries/public";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
+import { validSoughtSectorIds } from "@/server/services/sought-sectors";
 import {
   sendExistingProfileLink,
   sendRegistrationConfirmed,
@@ -31,7 +33,7 @@ import { GENERIC_ERROR, type ActionState } from "./types";
 const STEP_FIELDS: string[][] = [
   ["firstName", "lastName", "email", "phone", "jobTitle"],
   ["companyName", "sectorId", "region", "city", "website", "description"],
-  ["offers", "needs", "goalsText", "consent"],
+  ["offers", "soughtSectorIds", "needs", "goalsText", "consent"],
 ];
 
 function stepOfErrors(fieldErrors: FieldErrors): number {
@@ -101,7 +103,7 @@ export async function registerToEvent(
     };
   }
 
-  const raw = formDataToObject(formData, { arrays: ["offers", "needs"] });
+  const raw = formDataToObject(formData, { arrays: ["offers", "needs", "soughtSectorIds"] });
   const honeypotFilled = typeof raw.companyFax === "string" && raw.companyFax.length > 0;
   const startedAt = Number(raw.formStartedAt);
   const tooFast =
@@ -137,6 +139,10 @@ export async function registerToEvent(
     where: { id: data.sectorId, organizationId: organization.id, isActive: true },
   });
   if (!sector) return { ok: false, fieldErrors: { sectorId: ["Choisissez un secteur."] }, step: 1 };
+  const soughtSectorIds = await validSoughtSectorIds(organization.id, data.soughtSectorIds);
+  if (!soughtSectorIds.length && !data.needs.length) {
+    return { ok: false, fieldErrors: { soughtSectorIds: [NEEDS_OR_SECTORS_MESSAGE] }, step: 2 };
+  }
 
   const existing = await prisma.participant.findUnique({
     where: { organizationId_email: { organizationId: organization.id, email: data.email } },
@@ -166,6 +172,7 @@ export async function registerToEvent(
           region: data.region,
           offers: data.offers,
           needs: data.needs,
+          soughtSectorIds,
           description: data.description,
           consentedAt: new Date(),
         },
@@ -177,6 +184,7 @@ export async function registerToEvent(
           source: "PLATFORM",
           offersSnapshot: data.offers,
           needsSnapshot: data.needs,
+          soughtSectorsSnapshot: soughtSectorIds,
           goalsText: data.goalsText,
         },
       });
@@ -222,9 +230,20 @@ export async function registerToEvent(
     sectorName: sector.name,
     offers: data.offers,
     needs: data.needs,
+    soughtSectorNames: await sectorNames(soughtSectorIds),
   });
 
   redirect(thankYouPath);
+}
+
+async function sectorNames(ids: string[]): Promise<string[]> {
+  if (!ids.length) return [];
+  const rows = await prisma.sector.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, name: true },
+  });
+  const byId = new Map(rows.map((r) => [r.id, r.name]));
+  return ids.map((id) => byId.get(id)).filter((name): name is string => Boolean(name));
 }
 
 /** One-click registration for an existing profile (link received by email). */
@@ -287,6 +306,7 @@ export async function quickRegister(
             cancelledAt: null,
             offersSnapshot: participant.offers,
             needsSnapshot: participant.needs,
+            soughtSectorsSnapshot: participant.soughtSectorIds,
             goalsText: parsed.data.goalsText,
           },
         });
@@ -298,6 +318,7 @@ export async function quickRegister(
             source: "PLATFORM",
             offersSnapshot: participant.offers,
             needsSnapshot: participant.needs,
+            soughtSectorsSnapshot: participant.soughtSectorIds,
             goalsText: parsed.data.goalsText,
           },
         });
@@ -340,6 +361,7 @@ export async function quickRegister(
     sectorName: participant.sector?.name ?? null,
     offers: participant.offers,
     needs: participant.needs,
+    soughtSectorNames: await sectorNames(participant.soughtSectorIds),
   });
 
   redirect(thankYouPath);

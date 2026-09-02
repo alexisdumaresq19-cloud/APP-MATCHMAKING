@@ -8,7 +8,7 @@ poids de chacun dans **Paramètres → Règles de matching** :
 
 | Ingrédient | Ce qu'il mesure | Poids par défaut |
 |---|---|---|
-| **Complémentarité** | Ce que l'un **offre** correspond-il à ce que l'autre **cherche**? (dans les deux sens) | 40 |
+| **Complémentarité** | Ce que l'un **offre** correspond-il à ce que l'autre **cherche**? (dans les deux sens). Les secteurs cochés à « Avec qui aimeriez-vous collaborer? » comptent comme un besoin : il est satisfait quand l'autre appartient à l'un de ces secteurs | 40 |
 | **Affinité des secteurs** | Vos secteurs d'activité se complètent-ils? (grille **Paramètres → Affinités**, de 0 à 100) | 30 |
 | **Région** | Même région (100), régions voisines (60), régions éloignées (20) | 15 |
 | **Nouveauté** | Ne se sont jamais rencontrés à l'une de vos rencontres passées (100), sinon 0 | 15 |
@@ -29,8 +29,20 @@ Vos décisions manuelles priment : un jumelage **épinglé** est toujours conser
 **exclu** n'est jamais proposé, même après un recalcul.
 
 Les participants ne voient jamais le score. Ils voient deux ou trois phrases, par exemple :
-« Ils offrent « entretien ménager », que vous recherchez. », « Vos secteurs se complètent souvent. »,
-« Vous êtes dans la même région. »
+« Ils offrent « entretien ménager », que vous recherchez. », « Vous souhaitiez rencontrer le secteur
+« Entretien ménager et commercial ». », « Vos secteurs se complètent souvent. », « Vous êtes dans la
+même région. »
+
+### « Avec qui aimeriez-vous collaborer? » (secteurs recherchés)
+
+À l'inscription, après avoir choisi son secteur, chaque entreprise voit la liste de vos secteurs
+avec, **pré-cochés**, ceux qui collaborent le plus souvent avec le sien : les secteurs dont
+l'affinité avec le sien est **≥ 65** dans votre matrice (4 au maximum, les plus forts d'abord).
+Elle peut en ajouter ou en retirer librement. Le champ libre « Ce que vous cherchez » devient
+facultatif : il faut au moins un secteur coché **ou** un besoin écrit. Résultat : moins de friction
+à l'inscription, et un jumelage qui « réfléchit seul » à partir de votre matrice.
+
+Pour changer ce qui est pré-coché, ajustez la matrice dans **Paramètres → Affinités**.
 
 ## Détails techniques
 
@@ -40,8 +52,10 @@ Code : `src/lib/matching/` (TypeScript pur, sans dépendance à la base de donn�
 ### Score d'une paire (`score.ts`)
 
 ```
-complementarity = 100 × (besoins de B satisfaits par A + besoins de A satisfaits par B)
-                  / max(1, min(4, |besoins A| + |besoins B|)), plafonné à 100
+besoins(X)      = étiquettes « ce que je cherche » de X + 1 si X a coché ≥ 1 secteur recherché
+satisfaits      = besoins de B satisfaits par A + besoins de A satisfaits par B
+                  + 1 si secteur(B) ∈ secteurs recherchés(A) + 1 si secteur(A) ∈ secteurs recherchés(B)
+complementarity = 100 × satisfaits / max(1, min(4, besoins(A) + besoins(B))), plafonné à 100
 sectorAffinity  = affinité(secteur A, secteur B)   (50 si un secteur manque)
 region          = 100 même région · 60 régions voisines (annexe B) · 20 sinon · 50 si inconnue
 novelty         = 0 si déjà rencontrés (même table à un événement COMPLETED) · 100 sinon
@@ -56,7 +70,12 @@ accents ni ponctuation) sont identiques **ou** dont la similarité de Dice sur b
 (« entretien ménager » ≈ « entretien menagers »). Chaque besoin compte une seule fois.
 
 Le détail est conservé dans `Match.reasons` (JSON) : scores par ingrédient, étiquettes appariées,
-région commune ou voisine, rencontre passée, pénalités. `reasons.ts` en tire les phrases affichées.
+secteur recherché de part et d'autre (`aSectorSoughtByB`, `bSectorSoughtByA`), région commune ou
+voisine, rencontre passée, pénalités. `reasons.ts` en tire les phrases affichées.
+
+Les secteurs pré-cochés viennent de `src/server/services/sought-sectors.ts` (`suggestedSectorsMap`,
+affinité ≥ 65, 4 max). Les listes sont figées dans `EventRegistration.soughtSectorsSnapshot` au
+moment de l'inscription, comme les offres et besoins.
 
 ### Sélection (`select.ts`)
 

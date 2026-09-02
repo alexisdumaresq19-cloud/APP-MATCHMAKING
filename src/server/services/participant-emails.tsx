@@ -24,6 +24,7 @@ export async function sendRegistrationConfirmed(input: {
   sectorName: string | null;
   offers: string[];
   needs: string[];
+  soughtSectorNames?: string[];
 }): Promise<boolean> {
   const { organization, event, participant } = input;
   const participantUrl = await participantAccessUrl(participant);
@@ -44,6 +45,7 @@ export async function sendRegistrationConfirmed(input: {
         sectorName={input.sectorName}
         offers={input.offers}
         needs={input.needs}
+        soughtSectorNames={input.soughtSectorNames ?? []}
         participantUrl={participantUrl}
       />
     ),

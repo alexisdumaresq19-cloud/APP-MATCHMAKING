@@ -12,6 +12,8 @@ export type Candidate = {
   /** Display tags (as typed); comparison is normalized internally. */
   offers: string[];
   needs: string[];
+  /** Sectors this participant wants to meet (needs expressed as sectors). */
+  soughtSectorIds?: string[];
   /** participantIds met at a past event (same table). */
   previouslyMetIds: Set<string>;
 };
@@ -43,7 +45,14 @@ export type Affinity = (sectorA: string, sectorB: string) => number;
 export type ExclusionReason = "same_sector" | "same_company";
 
 export type MatchReasons = {
-  complementarity: { score: number; aOffersBNeeds: string[]; bOffersANeeds: string[] };
+  complementarity: {
+    score: number;
+    aOffersBNeeds: string[];
+    bOffersANeeds: string[];
+    /** a is in b's sought sectors / b is in a's sought sectors. */
+    aSectorSoughtByB?: boolean;
+    bSectorSoughtByA?: boolean;
+  };
   sectorAffinity: { score: number; sectors: [string | null, string | null] };
   region: { score: number; same: boolean; neighbors: boolean; region: string | null };
   novelty: { score: number; previouslyMet: boolean };

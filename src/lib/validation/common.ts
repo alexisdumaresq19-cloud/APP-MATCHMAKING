@@ -74,6 +74,17 @@ export const tagsSchema = z
       .max(TAG_MAX_COUNT, `${TAG_MAX_COUNT} éléments maximum.`),
   );
 
+/** Same as tagsSchema but an empty list is allowed (needs may be expressed as sectors instead). */
+export const optionalTagsSchema = z
+  .array(z.string().max(200))
+  .default([])
+  .transform((tags) => dedupeTags(tags))
+  .pipe(
+    z
+      .array(z.string().min(1).max(TAG_MAX_LENGTH))
+      .max(TAG_MAX_COUNT, `${TAG_MAX_COUNT} éléments maximum.`),
+  );
+
 export const regionSchema = z.enum(REGIONS, { error: "Choisissez une région." });
 
 export const sectorIdSchema = z
@@ -82,6 +93,13 @@ export const sectorIdSchema = z
   .max(64);
 
 export const cuidSchema = z.string().min(1).max(64);
+
+/** Sector ids checked in "Avec qui aimeriez-vous collaborer ?" (deduplicated). */
+export const sectorIdListSchema = z
+  .array(z.string().max(64))
+  .default([])
+  .transform((ids) => [...new Set(ids.map((id) => id.trim()).filter(Boolean))])
+  .pipe(z.array(cuidSchema).max(40, "40 secteurs maximum."));
 
 export const checkboxSchema = z.preprocess(
   (value) => value === "on" || value === "true" || value === true,

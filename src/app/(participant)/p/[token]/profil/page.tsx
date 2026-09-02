@@ -6,6 +6,7 @@ import { REGIONS } from "@/lib/regions";
 import { updateParticipantProfile } from "@/server/actions/participant";
 import { getActiveSectors } from "@/server/queries/public";
 import { getTagSuggestions } from "@/server/queries/tags";
+import { suggestedSectorsMap } from "@/server/services/sought-sectors";
 
 export const metadata: Metadata = { title: "Mon profil" };
 
@@ -18,9 +19,10 @@ export default async function ParticipantProfilePage({
   const context = await resolveParticipantAccess(token);
   if (!context) notFound();
   const { participant, organization } = context;
-  const [sectors, tagSuggestions] = await Promise.all([
+  const [sectors, tagSuggestions, suggestedSectors] = await Promise.all([
     getActiveSectors(organization.id),
     getTagSuggestions(organization.id),
+    suggestedSectorsMap(organization.id),
   ]);
 
   return (
@@ -47,10 +49,12 @@ export default async function ParticipantProfilePage({
           description: participant.description,
           offers: participant.offers,
           needs: participant.needs,
+          soughtSectorIds: participant.soughtSectorIds,
         }}
         sectors={sectors}
         regions={REGIONS}
         tagSuggestions={tagSuggestions}
+        suggestedSectors={suggestedSectors}
       />
     </div>
   );

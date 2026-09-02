@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, FormAlert, fieldAria } from "@/components/shared/form-field";
 import { NativeSelect } from "@/components/shared/native-select";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { SectorChecklist } from "@/components/shared/sector-checklist";
 import { TagsInput } from "@/components/shared/tags-input";
 import { ConsentBox } from "@/components/public/consent-box";
 import type { ActionState } from "@/server/actions/types";
@@ -61,14 +62,25 @@ type Props = {
   privacyEmail: string;
   organizationName: string;
   tagSuggestions?: string[];
+  /** sectorId → sector ids pre-checked in "Avec qui aimeriez-vous collaborer ?". */
+  suggestedSectors?: Record<string, string[]>;
 };
 
-export function RegistrationForm({ action, sectors, regions, consentText, tagSuggestions = [] }: Props) {
+export function RegistrationForm({
+  action,
+  sectors,
+  regions,
+  consentText,
+  tagSuggestions = [],
+  suggestedSectors = {},
+}: Props) {
   const [state, formAction] = useActionState(action, null);
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<Values>(EMPTY);
   const [offers, setOffers] = useState<string[]>([]);
   const [needs, setNeeds] = useState<string[]>([]);
+  const [soughtSectorIds, setSoughtSectorIds] = useState<string[]>([]);
+  const [soughtTouched, setSoughtTouched] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [startedAt, setStartedAt] = useState(0);
   const topRef = useRef<HTMLDivElement>(null);
@@ -88,6 +100,10 @@ export function RegistrationForm({ action, sectors, regions, consentText, tagSug
   function set<K extends keyof Values>(field: K, value: Values[K]) {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+    // Pre-check the sectors that collaborate most with the chosen one (until edited by hand).
+    if (field === "sectorId" && !soughtTouched) {
+      setSoughtSectorIds(suggestedSectors[String(value)] ?? []);
+    }
   }
 
   function validateStep(index: number): boolean {
@@ -96,7 +112,13 @@ export function RegistrationForm({ action, sectors, regions, consentText, tagSug
         ? stepPersonSchema.safeParse(values)
         : index === 1
           ? stepCompanySchema.safeParse(values)
-          : stepMatchingSchema.safeParse({ offers, needs, goalsText: values.goalsText, consent: values.consent });
+          : stepMatchingSchema.safeParse({
+              offers,
+              needs,
+              soughtSectorIds,
+              goalsText: values.goalsText,
+              consent: values.consent,
+            });
     if (result.success) return true;
     const fieldErrors = fieldErrorsOf(result.error);
     setErrors((current) => ({ ...current, ...fieldErrors }));
@@ -368,11 +390,35 @@ export function RegistrationForm({ action, sectors, regions, consentText, tagSug
           />
         </Field>
         <Field
+          label="Avec qui aimeriez-vous collaborer?"
+          htmlFor="soughtSectorIds"
+          required
+          error={errors.soughtSectorIds}
+          hint="Cochez les secteurs d'entreprises que vous souhaitez rencontrer."
+        >
+          <SectorChecklist
+            id="soughtSectorIds"
+            label="Avec qui aimeriez-vous collaborer?"
+            name="soughtSectorIds"
+            sectors={sectors}
+            value={soughtSectorIds}
+            onChange={(ids) => {
+              setSoughtTouched(true);
+              setSoughtSectorIds(ids);
+              setErrors((current) => ({ ...current, soughtSectorIds: undefined }));
+            }}
+            suggested={suggestedSectors[values.sectorId] ?? []}
+            ownSectorId={values.sectorId || null}
+            invalid={Boolean(errors.soughtSectorIds)}
+            describedBy={errors.soughtSectorIds ? "soughtSectorIds-error" : "soughtSectorIds-hint"}
+          />
+        </Field>
+        <Field
           label="Ce que vous cherchez"
           htmlFor="needs"
-          required
+          optionalLabel
           error={errors.needs}
-          hint="Les fournisseurs, partenaires ou clients que vous aimeriez rencontrer."
+          hint="Précisez, si vous le souhaitez, les fournisseurs, partenaires ou clients recherchés."
         >
           <TagsInput
             id="needs"

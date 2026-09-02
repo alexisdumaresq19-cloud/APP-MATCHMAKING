@@ -14,6 +14,7 @@ import {
 } from "@/server/queries/public";
 import { registerToEvent } from "@/server/actions/register";
 import { getTagSuggestions } from "@/server/queries/tags";
+import { suggestedSectorsMap } from "@/server/services/sought-sectors";
 
 type Params = Promise<{ orgSlug: string; eventSlug: string }>;
 
@@ -53,9 +54,13 @@ export default async function PublicEventPage({ params }: { params: Params }) {
 
   const { organization } = event;
   const availability = registrationAvailability(event);
-  const [sectors, tagSuggestions] = availability.open
-    ? await Promise.all([getActiveSectors(organization.id), getTagSuggestions(organization.id)])
-    : [[], []];
+  const [sectors, tagSuggestions, suggestedSectors] = availability.open
+    ? await Promise.all([
+        getActiveSectors(organization.id),
+        getTagSuggestions(organization.id),
+        suggestedSectorsMap(organization.id),
+      ])
+    : [[], [], {}];
   const description = paragraphs(event.description);
   const mapsUrl = event.venueAddress
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venueAddress)}`
@@ -142,6 +147,7 @@ export default async function PublicEventPage({ params }: { params: Params }) {
               privacyEmail={organization.privacyEmail}
               organizationName={organization.name}
               tagSuggestions={tagSuggestions}
+              suggestedSectors={suggestedSectors}
             />
           </>
         ) : (

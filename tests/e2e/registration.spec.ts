@@ -34,6 +34,14 @@ test.describe("Public registration and participant space", () => {
     const offers = page.getByLabel("Ce que vous offrez");
     await offers.fill("garde d'enfants");
     await offers.press("Enter");
+    // The sectors that collaborate most with a daycare are pre-checked (affinity matrix ≥ 65).
+    const sought = page.getByRole("group", { name: "Avec qui aimeriez-vous collaborer?" });
+    await expect(sought.getByRole("checkbox", { name: /Ressources éducatives/ })).toBeChecked();
+    await expect(
+      sought.getByRole("checkbox", { name: /Entretien ménager et commercial/ }),
+    ).toBeChecked();
+    await expect(sought.getByRole("checkbox", { name: /^Juridique/ })).not.toBeChecked();
+    await sought.getByRole("checkbox", { name: /^Juridique/ }).check();
     const needs = page.getByLabel("Ce que vous cherchez");
     await needs.fill("entretien ménager");
     await needs.press("Enter");
@@ -60,6 +68,14 @@ test.describe("Public registration and participant space", () => {
     expect(participant.website).toBe("https://petitspas.ca");
     expect(participant.offers).toEqual(["garde d'enfants"]);
     expect(participant.needs).toEqual(["entretien ménager", "traiteur"]);
+    const soughtNames = (
+      await prisma.sector.findMany({ where: { id: { in: participant.soughtSectorIds } } })
+    )
+      .map((s) => s.name)
+      .sort();
+    expect(soughtNames).toEqual(
+      ["Entretien ménager et commercial", "Juridique", "Ressources éducatives"].sort(),
+    );
     expect(participant.registrations).toHaveLength(1);
     expect(participant.consents).toHaveLength(1);
     const emailLog = await prisma.emailLog.findFirst({

@@ -10,7 +10,9 @@ async function login(page: Page) {
 }
 
 async function openEventId(): Promise<string> {
-  const event = await prisma.event.findFirstOrThrow({ where: { slug: "rencontres-affaires-printemps", organization: { slug: "demo" } } });
+  const event = await prisma.event.findFirstOrThrow({
+    where: { slug: "rencontres-affaires-printemps", organization: { slug: "demo" } },
+  });
   return event.id;
 }
 
@@ -45,7 +47,9 @@ test.describe("Week 2 — matching, settings, import/export", () => {
 
     await page.goto("/admin/settings/affinites");
     await expect(page.getByRole("heading", { name: /Matrice d'affinité/ })).toBeVisible();
-    const cell = page.getByLabel("Garderie / petite enfance et Entretien ménager et commercial").first();
+    const cell = page
+      .getByLabel("Garderie / petite enfance et Entretien ménager et commercial")
+      .first();
     await expect(cell).toHaveValue("85");
 
     await page.goto("/admin/settings/regles");
@@ -79,7 +83,9 @@ test.describe("Week 2 — matching, settings, import/export", () => {
     await dialog.getByRole("textbox", { name: "Courriel", exact: true }).fill(email);
     await dialog.getByRole("textbox", { name: "Prénom", exact: true }).fill("Manuel");
     await dialog.getByRole("textbox", { name: "Nom", exact: true }).fill("Ajouté");
-    await dialog.getByRole("textbox", { name: "Entreprise", exact: true }).fill("Entreprise Manuelle");
+    await dialog
+      .getByRole("textbox", { name: "Entreprise", exact: true })
+      .fill("Entreprise Manuelle");
     await dialog.getByRole("combobox", { name: "Secteur", exact: true }).selectOption({ index: 1 });
     await dialog.getByRole("combobox", { name: "Région", exact: true }).selectOption("Laval");
     await dialog.getByRole("textbox", { name: "Ville", exact: true }).fill("Laval");
@@ -91,10 +97,15 @@ test.describe("Week 2 — matching, settings, import/export", () => {
     await needs.press("Enter");
     await dialog.getByRole("button", { name: "Ajouter l'inscrit" }).click();
     await expect(page.getByText(/Inscrit ajouté/)).toBeVisible();
-    const participant = await prisma.participant.findFirstOrThrow({ where: { email }, include: { registrations: true } });
+    const participant = await prisma.participant.findFirstOrThrow({
+      where: { email },
+      include: { registrations: true },
+    });
     expect(participant.registrations[0]?.source).toBe("MANUAL");
     expect(participant.consentedAt).toBeNull();
-    const log = await prisma.emailLog.findFirst({ where: { toEmail: email, template: "consent_pending" } });
+    const log = await prisma.emailLog.findFirst({
+      where: { toEmail: email, template: "consent_pending" },
+    });
     expect(log?.status).toBe("sent");
   });
 });

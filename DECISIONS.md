@@ -193,3 +193,19 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
 - **Décision** : conformément au cahier des charges, seuls les inscrits non annulés **avec un
   secteur** sont jumelés; les autres sont listés dans l'onglet Matching avec un rappel de compléter
   leur profil. Une région manquante vaut un score neutre (50), pas une exclusion.
+
+## D-26 — « Avec qui aimeriez-vous collaborer? » : besoins exprimés en secteurs, pré-cochés
+- **Contexte** : la ligne directrice de la cliente demande que les entreprises n'aient pas à écrire
+  ce qu'elles cherchent : une liste de secteurs à cocher, pré-remplie par l'application (« une
+  garderie connecte avec entretien ménager et animation »), tout en laissant l'entreprise ajuster.
+- **Décision** : chaque participant a une liste de **secteurs recherchés** (`Participant.soughtSectorIds`,
+  figée par inscription dans `soughtSectorsSnapshot`). À l'inscription, au profil et dans la fiche
+  admin, la liste est pré-cochée à partir de la **matrice d'affinité** existante (affinité ≥ 65, 4
+  max), sans nouvelle table de règles. Le champ libre « Ce que vous cherchez » devient facultatif;
+  il faut au moins un secteur coché ou un besoin écrit. Dans le score, un secteur recherché compte
+  comme un besoin supplémentaire, satisfait quand l'autre participant appartient à ce secteur;
+  `reasons.ts` l'explique (« Vous souhaitiez rencontrer le secteur « … ». »).
+- **Raison** : une seule source de vérité (la matrice, déjà éditable par l'organisatrice) nourrit
+  à la fois la suggestion et le score; la formule de la section 7.2 reste inchangée pour les
+  étiquettes libres. Le reste de la ligne directrice (annuaire Google Places, tri payant, messagerie,
+  carnet d'adresses, billetterie) est hors Phase 1 et consigné dans IDEES_PHASE2.md.

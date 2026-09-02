@@ -191,6 +191,7 @@ model Participant {
   region         String? // administrative region (closed list, see src/lib/regions.ts)
   offers         String[] // free tags: what the company offers
   needs          String[] // free tags: what the company is looking for
+  soughtSectorIds String[] @default([]) // ADDED: sectors the company wants to meet ("Avec qui collaborer?")
   description    String?      @db.Text // 300 characters max
   tokenVersion   Int          @default(0) // increment to revoke every link
   consentedAt    DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
@@ -254,6 +255,7 @@ model EventRegistration {
   // Snapshot of the answers at registration time (the profile may change afterwards).
   offersSnapshot String[]
   needsSnapshot  String[]
+  soughtSectorsSnapshot String[] @default([]) // ADDED
   goalsText      String?  @db.Text // "Qu'espérez-vous retirer de cet événement ?"
   notes          String?  @db.Text // organizer's internal notes
   checkedInAt    DateTime?

@@ -15,7 +15,12 @@ import {
 } from "@/lib/matching";
 import { companyKey } from "@/lib/normalize";
 
-export type IgnoredRegistration = { registrationId: string; participantId: string; name: string; reason: "no_sector" };
+export type IgnoredRegistration = {
+  registrationId: string;
+  participantId: string;
+  name: string;
+  reason: "no_sector";
+};
 
 export type MatchingRunResult = {
   summary: SelectionSummary;
@@ -126,6 +131,9 @@ export async function loadCandidates(
       region: p.region,
       offers: registration.offersSnapshot.length ? registration.offersSnapshot : p.offers,
       needs: registration.needsSnapshot.length ? registration.needsSnapshot : p.needs,
+      soughtSectorIds: registration.soughtSectorsSnapshot.length
+        ? registration.soughtSectorsSnapshot
+        : p.soughtSectorIds,
       previouslyMetIds: met.get(p.id) ?? new Set<string>(),
     });
   }
@@ -148,11 +156,18 @@ export async function runMatchingForEvent(
     loadRuleSetForEvent(event),
     loadAffinity(organizationId),
     loadCandidates(eventId, organizationId),
-    prisma.match.findMany({ where: { eventId }, select: { id: true, aId: true, bId: true, status: true } }),
+    prisma.match.findMany({
+      where: { eventId },
+      select: { id: true, aId: true, bId: true, status: true },
+    }),
   ]);
   const rules = rulesFromRuleSet(ruleSet);
-  const pinned = new Set(existing.filter((m) => m.status === "PINNED").map((m) => pairKey(m.aId, m.bId)));
-  const excluded = new Set(existing.filter((m) => m.status === "EXCLUDED").map((m) => pairKey(m.aId, m.bId)));
+  const pinned = new Set(
+    existing.filter((m) => m.status === "PINNED").map((m) => pairKey(m.aId, m.bId)),
+  );
+  const excluded = new Set(
+    existing.filter((m) => m.status === "EXCLUDED").map((m) => pairKey(m.aId, m.bId)),
+  );
 
   const selection = selectMatches({
     candidates,
@@ -202,7 +217,12 @@ export async function runMatchingForEvent(
     },
   });
 
-  return { summary: selection.summary, ignored, ruleSetName: ruleSet?.name ?? "Règles par défaut", matchedAt };
+  return {
+    summary: selection.summary,
+    ignored,
+    ruleSetName: ruleSet?.name ?? "Règles par défaut",
+    matchedAt,
+  };
 }
 
 /** Scores one specific pair with the event's current rules (used for manual pins). */

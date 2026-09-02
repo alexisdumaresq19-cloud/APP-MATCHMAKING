@@ -31,6 +31,7 @@ import { truncate } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { registrantsQuerySchema, type RegistrantsQuery } from "@/lib/validation/event";
 import { currentConsentVersion } from "@/server/services/consent";
+import { suggestedSectorsMap } from "@/server/services/sought-sectors";
 import { PAGE_SIZE, getSectors, listRegistrants } from "@/server/queries/admin";
 
 export const metadata: Metadata = { title: "Inscrits" };
@@ -66,10 +67,11 @@ export default async function RegistrantsPage({
   const event = await prisma.event.findFirst({ where: { id, organizationId: organization.id } });
   if (!event) notFound();
 
-  const [sectors, result, tagSuggestions] = await Promise.all([
+  const [sectors, result, tagSuggestions, suggestedSectors] = await Promise.all([
     getSectors(organization.id),
     listRegistrants(event.id, query),
     getTagSuggestions(organization.id),
+    suggestedSectorsMap(organization.id),
   ]);
   const consentVersion = currentConsentVersion(organization);
   const consentedIds = new Set(
@@ -140,6 +142,7 @@ export default async function RegistrantsPage({
           sectors={activeSectors}
           regions={REGIONS}
           tagSuggestions={tagSuggestions}
+          suggestedSectors={suggestedSectors}
         />
         <Link
           href={`${base}/import`}
@@ -231,6 +234,7 @@ export default async function RegistrantsPage({
                       description: p.description,
                       offers: p.offers,
                       needs: p.needs,
+                      soughtSectorIds: p.soughtSectorIds,
                     },
                   };
                   return (
@@ -286,6 +290,7 @@ export default async function RegistrantsPage({
                           sectors={activeSectors}
                           regions={REGIONS}
                           tagSuggestions={tagSuggestions}
+                          suggestedSectors={suggestedSectors}
                         />
                       </TableCell>
                     </TableRow>

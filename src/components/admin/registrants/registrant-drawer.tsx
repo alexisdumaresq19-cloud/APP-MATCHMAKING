@@ -56,9 +56,16 @@ type Props = {
   sectors: { id: string; name: string }[];
   regions: readonly string[];
   tagSuggestions?: string[];
+  suggestedSectors?: Record<string, string[]>;
 };
 
-export function RegistrantDrawer({ registrant, sectors, regions, tagSuggestions = [] }: Props) {
+export function RegistrantDrawer({
+  registrant,
+  sectors,
+  regions,
+  tagSuggestions = [],
+  suggestedSectors = {},
+}: Props) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const { profile } = registrant;
@@ -196,6 +203,8 @@ export function RegistrantDrawer({ registrant, sectors, regions, tagSuggestions 
             sectors={sectors}
             regions={regions}
             tagSuggestions={tagSuggestions}
+            suggestedSectors={suggestedSectors}
+            idPrefix={`r-${registrant.registrationId}-`}
             submitClassName="w-full sm:w-auto"
             extraFields={
               <Field

@@ -86,6 +86,7 @@ export async function confirmImport(eventId: string, csvText: string): Promise<I
               description: row.description,
               offers: row.offers,
               needs: row.needs,
+              soughtSectorIds: row.soughtSectorIds,
             },
           });
         }
@@ -114,6 +115,7 @@ export async function confirmImport(eventId: string, csvText: string): Promise<I
               source: "IMPORT",
               offersSnapshot: participant.offers,
               needsSnapshot: participant.needs,
+              soughtSectorsSnapshot: participant.soughtSectorIds,
               goalsText: row.goalsText,
             },
           });

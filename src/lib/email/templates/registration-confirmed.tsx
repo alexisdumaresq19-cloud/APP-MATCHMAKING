@@ -11,6 +11,7 @@ export type RegistrationConfirmedProps = {
   sectorName: string | null;
   offers: string[];
   needs: string[];
+  soughtSectorNames?: string[];
   participantUrl: string;
 };
 
@@ -42,9 +43,16 @@ export function RegistrationConfirmedEmail(props: RegistrationConfirmedProps) {
         <Text style={{ ...emailStyles.muted, margin: "0 0 4px" }}>
           Vous offrez : {props.offers.join(", ")}
         </Text>
-        <Text style={{ ...emailStyles.muted, margin: 0 }}>
-          Vous cherchez : {props.needs.join(", ")}
-        </Text>
+        {props.soughtSectorNames?.length ? (
+          <Text style={{ ...emailStyles.muted, margin: "0 0 4px" }}>
+            Vous souhaitez rencontrer : {props.soughtSectorNames.join(", ")}
+          </Text>
+        ) : null}
+        {props.needs.length ? (
+          <Text style={{ ...emailStyles.muted, margin: 0 }}>
+            Vous cherchez : {props.needs.join(", ")}
+          </Text>
+        ) : null}
       </Section>
       <Text style={emailStyles.paragraph}>
         Vos jumelages vous seront envoyés avant l'événement. D'ici là, vous pouvez consulter et

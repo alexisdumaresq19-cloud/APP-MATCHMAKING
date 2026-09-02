@@ -20,6 +20,7 @@ export const EXPORT_HEADER = [
   "Description",
   "Offres",
   "Besoins",
+  "Secteurs recherchés",
   "Objectif",
   "Statut",
   "Source",
@@ -68,6 +69,14 @@ export async function exportRegistrantsRows(
       },
     },
   });
+  const sectorNames = new Map(
+    (
+      await prisma.sector.findMany({
+        where: { organizationId: organization.id },
+        select: { id: true, name: true },
+      })
+    ).map((s) => [s.id, s.name]),
+  );
   const consentVersion = currentConsentVersion(organization);
   const consented = new Set(
     (
@@ -104,6 +113,10 @@ export async function exportRegistrantsRows(
       p.description,
       p.offers.join(" | "),
       p.needs.join(" | "),
+      p.soughtSectorIds
+        .map((id) => sectorNames.get(id))
+        .filter(Boolean)
+        .join(" | "),
       row.goalsText,
       registrationStatusLabel(row.status),
       registrationSourceLabel(row.source),

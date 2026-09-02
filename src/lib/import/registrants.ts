@@ -61,8 +61,14 @@ export const IMPORT_COLUMNS = [
   {
     key: "besoins",
     label: "besoins",
-    required: true,
+    required: false,
     aliases: ["besoin", "needs", "ce_que_vous_cherchez"],
+  },
+  {
+    key: "secteurs_recherches",
+    label: "secteurs_recherches",
+    required: false,
+    aliases: ["secteurs", "collaborer_avec", "sought_sectors", "avec_qui_collaborer"],
   },
   {
     key: "objectif",
@@ -75,7 +81,7 @@ export const IMPORT_COLUMNS = [
 export type ImportColumnKey = (typeof IMPORT_COLUMNS)[number]["key"];
 
 export const IMPORT_TEMPLATE = `${IMPORT_COLUMNS.map((c) => c.label).join(";")}
-marie.tremblay@exemple.quebec;Marie;Tremblay;514 555-0142;Propriétaire;Garderie Les Petits Pas;Garderie / petite enfance;Montréal;Montréal;petitspas.ca;Garderie de 40 places à Rosemont;garde d'enfants|camp de jour;entretien ménager|traiteur;Trouver un fournisseur d'entretien
+marie.tremblay@exemple.quebec;Marie;Tremblay;514 555-0142;Propriétaire;Garderie Les Petits Pas;Garderie / petite enfance;Montréal;Montréal;petitspas.ca;Garderie de 40 places à Rosemont;garde d'enfants|camp de jour;entretien ménager|traiteur;Entretien ménager et commercial|Ressources éducatives;Trouver un fournisseur d'entretien
 `;
 
 export type ImportRowError = { line: number; field: string; message: string };
@@ -95,6 +101,7 @@ export type ImportedRow = {
   description: string | null;
   offers: string[];
   needs: string[];
+  soughtSectorIds: string[];
   goalsText: string | null;
 };
 
@@ -121,6 +128,16 @@ const tagList = z
       .max(8, "8 éléments maximum."),
   );
 
+const optionalTagList = z
+  .string()
+  .transform((value) =>
+    value
+      .split(/[|;]/)
+      .map((tag) => tag.trim())
+      .filter(Boolean),
+  )
+  .pipe(z.array(z.string().max(40)).max(8, "8 éléments maximum."));
+
 const rowSchema = z.object({
   email: emailSchema,
   firstName: nameSchema,
@@ -132,7 +149,7 @@ const rowSchema = z.object({
   website: websiteSchema,
   description: optionalText(300),
   offers: tagList,
-  needs: tagList,
+  needs: optionalTagList,
   goalsText: optionalText(500),
 });
 
@@ -214,6 +231,29 @@ export function analyzeRegistrantsCsv(
     const region = regionByKey.get(fold(get("region")));
     if (!region)
       rowErrors.push({ line, field: "region", message: `Région inconnue : « ${get("region")} ».` });
+    // Sought sectors: names or slugs separated by | (unknown names are reported, not ignored).
+    const soughtSectorIds: string[] = [];
+    for (const label of get("secteurs_recherches")
+      .split(/[|;]/)
+      .map((v) => v.trim())
+      .filter(Boolean)) {
+      const id = sectorByKey.get(fold(label));
+      if (!id) {
+        rowErrors.push({
+          line,
+          field: "secteurs_recherches",
+          message: `Secteur recherché inconnu : « ${label} ».`,
+        });
+      } else if (!soughtSectorIds.includes(id)) soughtSectorIds.push(id);
+    }
+    const soughtGiven = get("secteurs_recherches").trim().length > 0;
+    if (result.success && !result.data.needs.length && !soughtGiven) {
+      rowErrors.push({
+        line,
+        field: "besoins",
+        message: "Indiquez des besoins ou au moins un secteur recherché.",
+      });
+    }
     if (result.success) {
       if (seenEmails.has(result.data.email)) {
         rowErrors.push({ line, field: "courriel", message: "Courriel en double dans le fichier." });
@@ -225,7 +265,7 @@ export function analyzeRegistrantsCsv(
       analysis.errors.push(...rowErrors);
       return;
     }
-    analysis.rows.push({ line, ...result.data, sectorId, region });
+    analysis.rows.push({ line, ...result.data, sectorId, region, soughtSectorIds });
   });
   return analysis;
 }

@@ -20,10 +20,29 @@ export function describeMatch(reasons: MatchReasons, viewer: "a" | "b"): string[
     viewer === "a" ? reasons.complementarity.aOffersBNeeds : reasons.complementarity.bOffersANeeds;
   const sentences: string[] = [];
 
+  const theirSectorSoughtByMe =
+    viewer === "a"
+      ? reasons.complementarity.bSectorSoughtByA
+      : reasons.complementarity.aSectorSoughtByB;
+  const mySectorSoughtByThem =
+    viewer === "a"
+      ? reasons.complementarity.aSectorSoughtByB
+      : reasons.complementarity.bSectorSoughtByA;
+  const theirSector =
+    viewer === "a" ? reasons.sectorAffinity.sectors[1] : reasons.sectorAffinity.sectors[0];
+
   if (theyOfferForMe.length)
     sentences.push(`Ils offrent ${list(theyOfferForMe)}, que vous recherchez.`);
   if (iOfferForThem.length)
     sentences.push(`Vous offrez ${list(iOfferForThem)}, qu'ils recherchent.`);
+  if (theirSectorSoughtByMe && sentences.length < 3)
+    sentences.push(
+      theirSector
+        ? `Vous souhaitiez rencontrer le secteur ${quote(theirSector)}.`
+        : "Vous souhaitiez rencontrer leur secteur.",
+    );
+  if (mySectorSoughtByThem && sentences.length < 3)
+    sentences.push("Ils cherchaient justement des entreprises de votre secteur.");
 
   if (reasons.sectorAffinity.score >= 85) sentences.push("Vos secteurs sont très complémentaires.");
   else if (reasons.sectorAffinity.score >= 65)

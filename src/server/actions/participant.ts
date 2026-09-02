@@ -10,6 +10,7 @@ import { clientIpFromHeaders, rateLimit } from "@/lib/rate-limit";
 import { fieldErrorsOf, formDataToObject } from "@/lib/validation/common";
 import { participantProfileSchema, resendLinkSchema } from "@/lib/validation/registration";
 import { currentConsentVersion } from "@/server/services/consent";
+import { validSoughtSectorIds } from "@/server/services/sought-sectors";
 import { sendParticipantLink } from "@/server/services/participant-emails";
 import { GENERIC_ERROR, type ActionState } from "./types";
 
@@ -26,7 +27,7 @@ export async function updateParticipantProfile(
   const { participant, organization } = context;
 
   const parsed = participantProfileSchema.safeParse(
-    formDataToObject(formData, { arrays: ["offers", "needs"] }),
+    formDataToObject(formData, { arrays: ["offers", "needs", "soughtSectorIds"] }),
   );
   if (!parsed.success) {
     return {
@@ -41,6 +42,7 @@ export async function updateParticipantProfile(
     where: { id: data.sectorId, organizationId: organization.id, isActive: true },
   });
   if (!sector) return { ok: false, fieldErrors: { sectorId: ["Choisissez un secteur."] } };
+  const soughtSectorIds = await validSoughtSectorIds(organization.id, data.soughtSectorIds);
 
   try {
     await prisma.participant.update({
@@ -58,6 +60,7 @@ export async function updateParticipantProfile(
         description: data.description,
         offers: data.offers,
         needs: data.needs,
+        soughtSectorIds,
       },
     });
   } catch (error) {

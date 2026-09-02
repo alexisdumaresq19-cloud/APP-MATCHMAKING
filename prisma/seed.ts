@@ -138,6 +138,15 @@ async function main() {
     }
   }
   await prisma.sectorAffinity.createMany({ data: affinityRows });
+  // "Avec qui aimeriez-vous collaborer ?" — the sectors pre-checked at registration (affinity ≥ 65).
+  const suggestedFor = (slug: string): string[] =>
+    sectors
+      .filter((other) => other.slug !== slug)
+      .map((other) => ({ id: other.id, score: affinityFor(slug, other.slug) }))
+      .filter((entry) => entry.score >= 65)
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 4)
+      .map((entry) => entry.id);
 
   const ruleSet = await prisma.matchingRuleSet.create({
     data: { organizationId: organization.id, name: "Règles par défaut", isDefault: true },
@@ -162,7 +171,26 @@ async function main() {
     usedEmails.add(email);
     const region = weighted(REGION_WEIGHTS);
     const offers = pick(tags.offers, faker.number.int({ min: 1, max: 3 }));
-    const needs = pick(tags.needs, faker.number.int({ min: 2, max: 4 }));
+    // Most participants keep the suggested sectors as is; some add or remove one; a quarter also
+    // skip the free-text needs, as the guideline allows.
+    const suggested = suggestedFor(sector.slug);
+    const soughtSectorIds = faker.datatype.boolean(0.7)
+      ? suggested
+      : faker.datatype.boolean()
+        ? suggested.slice(1)
+        : [
+            ...suggested,
+            ...pick(
+              sectors
+                .filter((s) => !suggested.includes(s.id) && s.id !== sector.id)
+                .map((s) => s.id),
+              1,
+            ),
+          ];
+    const needs =
+      soughtSectorIds.length && faker.datatype.boolean(0.25)
+        ? []
+        : pick(tags.needs, faker.number.int({ min: 2, max: 4 }));
     const created = await prisma.participant.create({
       data: {
         organizationId: organization.id,
@@ -186,6 +214,7 @@ async function main() {
         region: REGIONS.includes(region as (typeof REGIONS)[number]) ? region : "Montréal",
         offers,
         needs,
+        soughtSectorIds,
         description: faker.datatype.boolean(0.7) ? faker.company.catchPhrase().slice(0, 300) : null,
         consentedAt: new Date(),
       },
@@ -244,6 +273,7 @@ async function main() {
         source,
         offersSnapshot: participant.offers,
         needsSnapshot: participant.needs,
+        soughtSectorsSnapshot: participant.soughtSectorIds,
         goalsText: faker.datatype.boolean(0.4)
           ? "Trouver des partenaires d'affaires dans ma région."
           : null,
@@ -307,6 +337,7 @@ async function main() {
         source: index % 11 === 0 ? "IMPORT" : index % 13 === 0 ? "MANUAL" : "PLATFORM",
         offersSnapshot: participant.offers,
         needsSnapshot: participant.needs,
+        soughtSectorsSnapshot: participant.soughtSectorIds,
         goalsText: faker.datatype.boolean(0.5)
           ? faker.helpers.arrayElement([
               "Rencontrer des fournisseurs fiables.",

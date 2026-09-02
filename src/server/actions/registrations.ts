@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { RegistrationStatus } from "@prisma/client";
+import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { requireOrganizerAction } from "@/lib/auth/session";
 import { orgEvent, orgRegistration } from "@/lib/db/org-scope";
@@ -16,8 +17,9 @@ import {
   optionalText,
 } from "@/lib/validation/common";
 import { registrationStatusChangeSchema } from "@/lib/validation/event";
-import { participantProfileSchema } from "@/lib/validation/registration";
+import { needsOrSectors, participantProfileFields } from "@/lib/validation/registration";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
+import { validSoughtSectorIds } from "@/server/services/sought-sectors";
 import {
   sendConsentPending,
   sendParticipantLink,
@@ -25,7 +27,10 @@ import {
 } from "@/server/services/participant-emails";
 import { GENERIC_ERROR, type ActionState } from "./types";
 
-const adminProfileSchema = participantProfileSchema.extend({ notes: optionalText(2000) });
+const adminProfileSchema = z
+  .object({ ...participantProfileFields, notes: optionalText(2000) })
+  .check(needsOrSectors);
+const PROFILE_ARRAYS = ["offers", "needs", "soughtSectorIds"];
 
 function eventPaths(eventId: string): string[] {
   return [`/admin/events/${eventId}/inscrits`, `/admin/events/${eventId}`, "/admin"];
@@ -38,7 +43,7 @@ export async function updateRegistrantProfile(
 ): Promise<ActionState> {
   const { organizer, organization } = await requireOrganizerAction();
   const parsed = adminProfileSchema.safeParse(
-    formDataToObject(formData, { arrays: ["offers", "needs"] }),
+    formDataToObject(formData, { arrays: PROFILE_ARRAYS }),
   );
   if (!parsed.success) {
     return {
@@ -54,6 +59,7 @@ export async function updateRegistrantProfile(
       where: { id: data.sectorId, organizationId: organization.id },
     });
     if (!sector) return { ok: false, fieldErrors: { sectorId: ["Choisissez un secteur."] } };
+    const soughtSectorIds = await validSoughtSectorIds(organization.id, data.soughtSectorIds);
     await prisma.$transaction([
       prisma.participant.update({
         where: { id: registration.participantId },
@@ -70,6 +76,7 @@ export async function updateRegistrantProfile(
           description: data.description,
           offers: data.offers,
           needs: data.needs,
+          soughtSectorIds,
         },
       }),
       prisma.eventRegistration.update({ where: { id: registration.id }, data: { notes } }),
@@ -169,12 +176,15 @@ export async function resendParticipantLink(registrationId: string): Promise<Act
   return { ok: true, message: "Courriel envoyé." };
 }
 
-const manualRegistrantSchema = participantProfileSchema.extend({
-  email: emailSchema,
-  goalsText: optionalText(500),
-  notes: optionalText(2000),
-  sendEmail: checkboxSchema,
-});
+const manualRegistrantSchema = z
+  .object({
+    ...participantProfileFields,
+    email: emailSchema,
+    goalsText: optionalText(500),
+    notes: optionalText(2000),
+    sendEmail: checkboxSchema,
+  })
+  .check(needsOrSectors);
 
 /** Organizer adds a registrant by hand (source MANUAL). Existing participants keep their profile. */
 export async function addRegistrantManually(
@@ -184,7 +194,7 @@ export async function addRegistrantManually(
 ): Promise<ActionState> {
   const { organizer, organization } = await requireOrganizerAction();
   const parsed = manualRegistrantSchema.safeParse(
-    formDataToObject(formData, { arrays: ["offers", "needs"] }),
+    formDataToObject(formData, { arrays: PROFILE_ARRAYS }),
   );
   if (!parsed.success) {
     return {
@@ -200,6 +210,7 @@ export async function addRegistrantManually(
       where: { id: data.sectorId, organizationId: organization.id },
     });
     if (!sector) return { ok: false, fieldErrors: { sectorId: ["Choisissez un secteur."] } };
+    const soughtSectorIds = await validSoughtSectorIds(organization.id, data.soughtSectorIds);
 
     const existing = await prisma.participant.findUnique({
       where: { organizationId_email: { organizationId: organization.id, email: data.email } },
@@ -225,6 +236,7 @@ export async function addRegistrantManually(
           description: data.description,
           offers: data.offers,
           needs: data.needs,
+          soughtSectorIds,
         },
       });
     }
@@ -257,6 +269,7 @@ export async function addRegistrantManually(
           source: "MANUAL",
           offersSnapshot: reusedProfile ? participant.offers : data.offers,
           needsSnapshot: reusedProfile ? participant.needs : data.needs,
+          soughtSectorsSnapshot: reusedProfile ? participant.soughtSectorIds : soughtSectorIds,
           goalsText: data.goalsText,
           notes: data.notes,
         },

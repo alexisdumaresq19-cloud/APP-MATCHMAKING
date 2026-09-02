@@ -38,11 +38,21 @@ export function scorePair(
 
   const aToB = matchOffersToNeeds(a.offers, b.needs);
   const bToA = matchOffersToNeeds(b.offers, a.needs);
-  const denominator = Math.max(1, Math.min(4, a.needs.length + b.needs.length));
-  const complementarity = Math.min(
-    100,
-    (100 * (aToB.needsSatisfied + bToA.needsSatisfied)) / denominator,
-  );
+  // A sought sector ("Avec qui aimeriez-vous collaborer ?") counts as one extra need per side,
+  // satisfied when the other participant belongs to one of the sought sectors.
+  const aSought = a.soughtSectorIds ?? [];
+  const bSought = b.soughtSectorIds ?? [];
+  const bSectorSoughtByA = Boolean(b.sectorId && aSought.includes(b.sectorId));
+  const aSectorSoughtByB = Boolean(a.sectorId && bSought.includes(a.sectorId));
+  const needsA = a.needs.length + (aSought.length ? 1 : 0);
+  const needsB = b.needs.length + (bSought.length ? 1 : 0);
+  const satisfied =
+    aToB.needsSatisfied +
+    bToA.needsSatisfied +
+    (bSectorSoughtByA ? 1 : 0) +
+    (aSectorSoughtByB ? 1 : 0);
+  const denominator = Math.max(1, Math.min(4, needsA + needsB));
+  const complementarity = Math.min(100, (100 * satisfied) / denominator);
 
   const sectorAffinity =
     a.sectorId && b.sectorId ? clamp(affinity(a.sectorId, b.sectorId), 0, 100) : NEUTRAL_SCORE;
@@ -101,6 +111,8 @@ export function scorePair(
         score: Math.round(complementarity),
         aOffersBNeeds: aToB.offers,
         bOffersANeeds: bToA.offers,
+        aSectorSoughtByB,
+        bSectorSoughtByA,
       },
       sectorAffinity: {
         score: Math.round(sectorAffinity),

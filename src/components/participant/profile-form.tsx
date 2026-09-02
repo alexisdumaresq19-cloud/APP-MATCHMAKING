@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FormAlert, fieldAria } from "@/components/shared/form-field";
 import { NativeSelect } from "@/components/shared/native-select";
+import { SectorChecklist } from "@/components/shared/sector-checklist";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { TagsInput } from "@/components/shared/tags-input";
 import { formatPhone } from "@/lib/normalize";
@@ -25,6 +26,7 @@ export type ProfileFormValues = {
   description: string | null;
   offers: string[];
   needs: string[];
+  soughtSectorIds: string[];
 };
 
 type Props = {
@@ -33,6 +35,10 @@ type Props = {
   sectors: { id: string; name: string }[];
   regions: readonly string[];
   tagSuggestions?: string[];
+  /** sectorId → sector ids pre-checked in "Avec qui aimeriez-vous collaborer ?". */
+  suggestedSectors?: Record<string, string[]>;
+  /** Prefix for element ids when several forms share a page (admin drawer). */
+  idPrefix?: string;
   /** Extra fields rendered before the submit button (e.g. organizer notes). */
   extraFields?: ReactNode;
   submitClassName?: string;
@@ -45,6 +51,8 @@ export function ProfileForm({
   sectors,
   regions,
   tagSuggestions = [],
+  suggestedSectors = {},
+  idPrefix = "",
   extraFields,
   submitClassName,
   onSaved,
@@ -52,7 +60,10 @@ export function ProfileForm({
   const [state, formAction] = useActionState(action, null);
   const [offers, setOffers] = useState(initial.offers);
   const [needs, setNeeds] = useState(initial.needs);
+  const [sectorId, setSectorId] = useState(initial.sectorId ?? "");
+  const [soughtSectorIds, setSoughtSectorIds] = useState(initial.soughtSectorIds);
   const [description, setDescription] = useState(initial.description ?? "");
+  const soughtId = `${idPrefix}soughtSectorIds`;
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {};
 
   useEffect(() => {
@@ -149,7 +160,13 @@ export function ProfileForm({
           <NativeSelect
             id="sectorId"
             name="sectorId"
-            defaultValue={initial.sectorId ?? ""}
+            value={sectorId}
+            onChange={(e) => {
+              setSectorId(e.target.value);
+              // An empty list follows the suggestions of the newly chosen sector.
+              if (!soughtSectorIds.length)
+                setSoughtSectorIds(suggestedSectors[e.target.value] ?? []);
+            }}
             {...fieldAria("sectorId", errors.sectorId)}
           >
             <option value="">Choisissez un secteur…</option>
@@ -229,7 +246,27 @@ export function ProfileForm({
             invalid={Boolean(errors.offers)}
           />
         </Field>
-        <Field label="Ce que vous cherchez" htmlFor="needs" required error={errors.needs}>
+        <Field
+          label="Avec qui aimeriez-vous collaborer?"
+          htmlFor={soughtId}
+          required
+          error={errors.soughtSectorIds}
+          hint="Les secteurs d'entreprises que vous souhaitez rencontrer."
+        >
+          <SectorChecklist
+            id={soughtId}
+            label="Avec qui aimeriez-vous collaborer?"
+            name="soughtSectorIds"
+            sectors={sectors}
+            value={soughtSectorIds}
+            onChange={setSoughtSectorIds}
+            suggested={suggestedSectors[sectorId] ?? []}
+            ownSectorId={sectorId || null}
+            invalid={Boolean(errors.soughtSectorIds)}
+            describedBy={errors.soughtSectorIds ? `${soughtId}-error` : `${soughtId}-hint`}
+          />
+        </Field>
+        <Field label="Ce que vous cherchez" htmlFor="needs" optionalLabel error={errors.needs}>
           <TagsInput
             id="needs"
             name="needs"

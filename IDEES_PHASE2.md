@@ -15,3 +15,14 @@
 - Invitations « amenez un partenaire » : un participant recommande une entreprise complémentaire.
 - Sondage post-événement (« Avez-vous conclu une affaire ? ») pour mesurer la valeur des jumelages et ajuster la matrice d'affinité.
 - Check-in par lecture d'un code QR personnel (affiché dans l'espace participant), à la façon de Luma.
+
+## Issues de la ligne directrice de la cliente (septembre 2026)
+
+Retenu en Phase 1 : « Avec qui aimeriez-vous collaborer? » avec secteurs pré-cochés (D-26). Le reste :
+
+- Annuaire géolocalisé des entreprises de la région importées de Google Places (`is_registered`), avec tri « premium d'abord puis distance » (`is_premium`, payant).
+- Messagerie directe entre entreprises inscrites; bouton « Message » conditionnel à l'inscription des deux parties.
+- Carnet d'adresses personnel (« Ajouter à mes contacts ») après un jumelage.
+- Achat de billets (Stripe ou lien Eventbrite) et calendrier des événements avec ajout `.ics` / Google / Apple.
+- Filtrage collaboratif : apprendre des acceptations (ex. 80 % des garderies acceptent les traiteurs) pour ajuster automatiquement les suggestions et la matrice d'affinité.
+- Score « 70 % étiquettes / 30 % distance » avec géolocalisation (latitude/longitude) plutôt que la région administrative.

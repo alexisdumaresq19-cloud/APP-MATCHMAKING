@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FormAlert, fieldAria } from "@/components/shared/form-field";
 import { NativeSelect } from "@/components/shared/native-select";
+import { SectorChecklist } from "@/components/shared/sector-checklist";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { TagsInput } from "@/components/shared/tags-input";
 import { addRegistrantManually } from "@/server/actions/registrations";
@@ -25,13 +26,23 @@ type Props = {
   sectors: { id: string; name: string }[];
   regions: readonly string[];
   tagSuggestions?: string[];
+  suggestedSectors?: Record<string, string[]>;
 };
 
-export function AddRegistrantSheet({ eventId, sectors, regions, tagSuggestions = [] }: Props) {
+export function AddRegistrantSheet({
+  eventId,
+  sectors,
+  regions,
+  tagSuggestions = [],
+  suggestedSectors = {},
+}: Props) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(addRegistrantManually.bind(null, eventId), null);
   const [offers, setOffers] = useState<string[]>([]);
   const [needs, setNeeds] = useState<string[]>([]);
+  const [sectorId, setSectorId] = useState("");
+  const [soughtSectorIds, setSoughtSectorIds] = useState<string[]>([]);
+  const [soughtTouched, setSoughtTouched] = useState(false);
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {};
 
   useEffect(() => {
@@ -40,6 +51,9 @@ export function AddRegistrantSheet({ eventId, sectors, regions, tagSuggestions =
       setOpen(false);
       setOffers([]);
       setNeeds([]);
+      setSectorId("");
+      setSoughtSectorIds([]);
+      setSoughtTouched(false);
     }
   }, [state]);
 
@@ -127,7 +141,11 @@ export function AddRegistrantSheet({ eventId, sectors, regions, tagSuggestions =
               <NativeSelect
                 id="add-sectorId"
                 name="sectorId"
-                defaultValue=""
+                value={sectorId}
+                onChange={(e) => {
+                  setSectorId(e.target.value);
+                  if (!soughtTouched) setSoughtSectorIds(suggestedSectors[e.target.value] ?? []);
+                }}
                 className="h-10"
                 {...fieldAria("add-sectorId", errors.sectorId)}
               >
@@ -203,9 +221,31 @@ export function AddRegistrantSheet({ eventId, sectors, regions, tagSuggestions =
             />
           </Field>
           <Field
+            label="Avec qui l'entreprise aimerait collaborer"
+            htmlFor="add-soughtSectorIds"
+            required
+            error={errors.soughtSectorIds}
+          >
+            <SectorChecklist
+              id="add-soughtSectorIds"
+              label="Avec qui l'entreprise aimerait collaborer"
+              name="soughtSectorIds"
+              sectors={sectors}
+              value={soughtSectorIds}
+              onChange={(ids) => {
+                setSoughtTouched(true);
+                setSoughtSectorIds(ids);
+              }}
+              suggested={suggestedSectors[sectorId] ?? []}
+              ownSectorId={sectorId || null}
+              invalid={Boolean(errors.soughtSectorIds)}
+              describedBy={errors.soughtSectorIds ? "add-soughtSectorIds-error" : undefined}
+            />
+          </Field>
+          <Field
             label="Ce que l'entreprise cherche"
             htmlFor="add-needs"
-            required
+            optionalLabel
             error={errors.needs}
           >
             <TagsInput

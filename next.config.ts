@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   serverExternalPackages: ["pino", "pino-pretty", "@node-rs/argon2", "exceljs", "nodemailer"],
+  transpilePackages: ["@animated-color-icons/lucide-react"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

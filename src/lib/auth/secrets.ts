@@ -82,10 +82,7 @@ function fallbackMaterial(env: Env): string | undefined {
 const warned = new Set<string>();
 
 /** Derives a stable secret for `purpose` when no explicit variable is configured. */
-export function deriveFallbackSecret(
-  purpose: string,
-  env: Env = process.env,
-): string | undefined {
+export function deriveFallbackSecret(purpose: string, env: Env = process.env): string | undefined {
   const material = fallbackMaterial(env);
   if (!material) return undefined;
   if (!warned.has(purpose) && env.NODE_ENV !== "test") {
@@ -101,9 +98,7 @@ export function resolveAuthSecret(env: Env = process.env): string | undefined {
   return env.AUTH_SECRET || env.NEXTAUTH_SECRET || deriveFallbackSecret("AUTH_SECRET", env);
 }
 
-export function resolveParticipantTokenSecret(
-  env: Env = process.env,
-): string | undefined {
+export function resolveParticipantTokenSecret(env: Env = process.env): string | undefined {
   return env.PARTICIPANT_TOKEN_SECRET || deriveFallbackSecret("PARTICIPANT_TOKEN_SECRET", env);
 }
 

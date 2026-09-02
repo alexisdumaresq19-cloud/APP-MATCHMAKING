@@ -301,3 +301,19 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
 - **Raison** : respecter mot pour mot la logique qu'elle décrit sans casser le modèle de score
   (poids ajustables, raisons en français). Le paiement intégré, l'annuaire Google Places, la
   messagerie et le carnet d'adresses restent en Phase 2 (`docs/LIGNE_DIRECTRICE.md`).
+
+## D-35 — Vitrine publique, inscription en un clic et invitations avec désabonnement
+- **Contexte** : sans le lien exact d'un événement, une entreprise ne pouvait rien découvrir ni
+  être invitée; les seuls courriels partaient après l'inscription.
+- **Décision** : `/<slug>` liste les événements à venir (hors brouillons, archivés et terminés) avec
+  l'état des inscriptions et les liens calendrier. L'espace participant montre les « Autres
+  événements ouverts » et réutilise l'inscription rapide (service partagé `registerWithProfile`,
+  aussi derrière le lien reçu par courriel). « Inviter les participants passés » (onglet
+  Publication) envoie, par lots de 20 comme les jumelages (D-28), un courriel d'invitation avec un
+  lien d'inscription en un clic valide jusqu'à la fermeture des inscriptions, à chaque personne de
+  l'annuaire non inscrite, une seule fois par événement (trace `EmailLog`). Chaque invitation
+  porte un lien « Ne plus recevoir d'invitations » (`Participant.invitationsOptOut`), honoré
+  immédiatement, et l'identité de l'expéditeur, comme l'exige la Loi canadienne anti-pourriel.
+- **Raison** : donner à l'Organisatrice un vrai canal de remplissage sans messagerie ni compte
+  entreprise (Phase 2), en restant du côté sûr de la LCAP grâce à la relation d'affaires existante
+  et au désabonnement en un clic.

@@ -67,3 +67,30 @@ export function registrationAvailability(
   }
   return { open: true, reason: "open" };
 }
+
+export type UpcomingEvent = Event & { activeRegistrations: number };
+
+/**
+ * Upcoming, non-draft events of an organization (showcase page `/[orgSlug]` and « Autres
+ * événements » in the participant space), soonest first.
+ */
+export const listUpcomingEvents = cache(
+  async (organizationId: string, now = new Date()): Promise<UpcomingEvent[]> => {
+    const events = await prisma.event.findMany({
+      where: {
+        organizationId,
+        status: { notIn: ["DRAFT", "ARCHIVED", "COMPLETED"] },
+        OR: [{ endsAt: { gte: now } }, { endsAt: null, startsAt: { gte: now } }],
+      },
+      include: {
+        _count: { select: { registrations: { where: { status: { not: "CANCELLED" } } } } },
+      },
+      orderBy: { startsAt: "asc" },
+      take: 50,
+    });
+    return events.map(({ _count, ...rest }) => ({
+      ...rest,
+      activeRegistrations: _count.registrations,
+    }));
+  },
+);

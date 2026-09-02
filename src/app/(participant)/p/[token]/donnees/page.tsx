@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DownloadIcon, FileSpreadsheetIcon } from "lucide-react";
+import Link from "next/link";
+import { DownloadIcon, FileSpreadsheetIcon, MailIcon } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DataRequestForm } from "@/components/participant/data-request-form";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
@@ -90,6 +91,24 @@ export default async function ParticipantDataPage({
             Télécharger (CSV)
           </a>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Invitations aux prochains événements</h2>
+        <p className="text-sm text-muted-foreground">
+          {participant.invitationsOptOut
+            ? "Vous ne recevez plus d'invitations par courriel."
+            : `${organization.name} peut vous inviter par courriel à ses prochains événements.`}
+        </p>
+        <Link
+          href={`/p/${token}/invitations`}
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+        >
+          <MailIcon aria-hidden="true" />
+          {participant.invitationsOptOut
+            ? "Recevoir à nouveau les invitations"
+            : "Gérer mes invitations"}
+        </Link>
       </section>
 
       <section className="space-y-3">

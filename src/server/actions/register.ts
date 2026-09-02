@@ -22,7 +22,8 @@ import {
   registrationSchema,
 } from "@/lib/validation/registration";
 import { getPublicEvent, registrationAvailability } from "@/server/queries/public";
-import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
+import { currentConsentVersion } from "@/server/services/consent";
+import { registerWithProfile } from "@/server/services/quick-registration";
 import { validSoughtSectorIds } from "@/server/services/sought-sectors";
 import {
   sendExistingProfileLink,
@@ -275,94 +276,33 @@ export async function quickRegister(
   if (!registrationAvailability(event).open) {
     return { ok: false, formError: "Les inscriptions à cet événement sont fermées." };
   }
-  const organization = event.organization;
 
   const parsed = quickRegistrationSchema.safeParse(formDataToObject(formData));
   if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
 
-  const consentVersion = currentConsentVersion(organization);
-  const needsConsent = !(await hasCurrentConsent(participant.id, consentVersion));
-  if (needsConsent && !parsed.data.consent) {
-    return {
-      ok: false,
-      fieldErrors: { consent: ["Vous devez lire et accepter l'avis de confidentialité."] },
-    };
-  }
-
-  const existing = await prisma.eventRegistration.findUnique({
-    where: { eventId_participantId: { eventId: event.id, participantId: participant.id } },
-  });
-  if (existing && existing.status !== "CANCELLED") {
-    redirect(await participantAccessUrl(participant));
-  }
-
+  let result;
   try {
-    await prisma.$transaction(async (tx) => {
-      if (existing) {
-        await tx.eventRegistration.update({
-          where: { id: existing.id },
-          data: {
-            status: "REGISTERED",
-            cancelledAt: null,
-            offersSnapshot: participant.offers,
-            needsSnapshot: participant.needs,
-            soughtSectorsSnapshot: participant.soughtSectorIds,
-            goalsText: parsed.data.goalsText,
-          },
-        });
-      } else {
-        await tx.eventRegistration.create({
-          data: {
-            eventId: event.id,
-            participantId: participant.id,
-            source: "PLATFORM",
-            offersSnapshot: participant.offers,
-            needsSnapshot: participant.needs,
-            soughtSectorsSnapshot: participant.soughtSectorIds,
-            goalsText: parsed.data.goalsText,
-          },
-        });
-      }
-      if (needsConsent) {
-        await tx.consentLog.create({
-          data: {
-            participantId: participant.id,
-            eventId: event.id,
-            consentVersion,
-            consentText: organization.consentText,
-            ipAddress: ip,
-            userAgent,
-          },
-        });
-        await tx.participant.update({
-          where: { id: participant.id },
-          data: { consentedAt: new Date() },
-        });
-      }
+    result = await registerWithProfile({
+      participant,
+      event,
+      goalsText: parsed.data.goalsText ?? null,
+      consentAccepted: parsed.data.consent,
+      ip,
+      userAgent,
     });
   } catch (error) {
     logger.error({ err: error }, "quick registration failed");
     return { ok: false, formError: GENERIC_ERROR };
   }
-
-  await audit({
-    organizationId: organization.id,
-    actorType: "participant",
-    actorId: participant.id,
-    action: "CREATE",
-    entity: "EventRegistration",
-    entityId: event.id,
-    metadata: { eventId: event.id, source: "PLATFORM", quick: true },
-  });
-  await sendRegistrationConfirmed({
-    organization,
-    event,
-    participant,
-    sectorName: participant.sector?.name ?? null,
-    offers: participant.offers,
-    needs: participant.needs,
-    soughtSectorNames: await sectorNames(participant.soughtSectorIds),
-  });
-
+  if (!result.ok) {
+    if (result.reason === "consent_required") {
+      return {
+        ok: false,
+        fieldErrors: { consent: ["Vous devez lire et accepter l'avis de confidentialité."] },
+      };
+    }
+    return { ok: false, formError: "Les inscriptions à cet événement sont fermées." };
+  }
+  if (result.alreadyRegistered) redirect(await participantAccessUrl(participant));
   redirect(thankYouPath);
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDaysIcon, ChevronRightIcon, MapPinIcon } from "lucide-react";
+import { CalendarDaysIcon, ChevronRightIcon, MapPinIcon, UserRoundPlusIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -8,6 +8,7 @@ import { FormAlert } from "@/components/shared/form-field";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
 import { formatDateRange } from "@/lib/dates";
 import { prisma } from "@/lib/db/prisma";
+import { listUpcomingEvents, registrationAvailability } from "@/server/queries/public";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
 import { registrationStatusLabel } from "@/lib/labels";
 
@@ -30,6 +31,13 @@ export default async function ParticipantHomePage({
   const upcoming = registrations.filter((r) => (r.event.endsAt ?? r.event.startsAt) >= now);
   const past = registrations.filter((r) => (r.event.endsAt ?? r.event.startsAt) < now);
   const consentOk = await hasCurrentConsent(participant.id, currentConsentVersion(organization));
+  // Open events of the organization the participant has not joined yet: one click to register.
+  const registeredEventIds = new Set(
+    registrations.filter((r) => r.status !== "CANCELLED").map((r) => r.eventId),
+  );
+  const openEvents = (await listUpcomingEvents(organization.id)).filter(
+    (event) => !registeredEventIds.has(event.id) && registrationAvailability(event).open,
+  );
 
   return (
     <div className="space-y-8">
@@ -59,7 +67,11 @@ export default async function ParticipantHomePage({
             icon="calendar-days"
             size="sm"
             title="Aucun événement à venir pour l'instant"
-            description="Vous recevrez un courriel dès qu'une nouvelle rencontre sera ouverte."
+            description={
+              openEvents.length
+                ? "Choisissez un événement ci-dessous pour vous inscrire en un clic."
+                : "Vous recevrez un courriel dès qu'une nouvelle rencontre sera ouverte."
+            }
           />
         ) : (
           <ul className="space-y-3">
@@ -75,6 +87,43 @@ export default async function ParticipantHomePage({
           </ul>
         )}
       </section>
+
+      {openEvents.length ? (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Autres événements ouverts</h2>
+          <p className="text-sm text-muted-foreground">
+            Inscrivez-vous en un clic avec votre profil actuel.
+          </p>
+          <ul className="space-y-3">
+            {openEvents.map((event) => (
+              <li key={event.id}>
+                <Link
+                  href={`/p/${token}/evenements/${event.id}/inscription`}
+                  className="flex items-center gap-4 rounded-lg border border-dashed bg-card p-4 transition-colors hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                >
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="line-clamp-2 text-base font-semibold">{event.name}</p>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <CalendarDaysIcon className="size-4 shrink-0" aria-hidden="true" />
+                      {formatDateRange(event.startsAt, event.endsAt, organization.timezone)}
+                    </p>
+                    {event.venueName ? (
+                      <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <MapPinIcon className="size-4 shrink-0" aria-hidden="true" />
+                        {event.venueName}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-foreground">
+                    <UserRoundPlusIcon className="size-4" aria-hidden="true" />
+                    M&apos;inscrire
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {past.length ? (
         <section className="space-y-3">

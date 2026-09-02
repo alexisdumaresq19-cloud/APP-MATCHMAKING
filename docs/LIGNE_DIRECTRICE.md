@@ -22,7 +22,7 @@ Légende : ✅ livré · 🟡 livré autrement (même résultat, mécanisme diff
 | Tri payant `is_premium` puis distance | ⏭️ | Dépend de l'annuaire public et d'un paiement. Phase 2. |
 | Bouton « Message direct » si l'entreprise est inscrite | ⏭️ | Messagerie entre entreprises : Phase 2 (consentement à partager les coordonnées à prévoir, voir `docs/LOI25.md`). |
 | Profils : nom, logo, adresse, secteur, mots-clés, description | 🟡 | Profil participant : nom, entreprise, poste, secteur, ville, région, site web, offres, besoins, secteurs recherchés, description (300 caractères). Pas de logo par entreprise ni de latitude/longitude en Phase 1 (région administrative à la place). |
-| Annuaire consultable | 🟡 | Annuaire interne `/admin/participants` (recherche, filtre par secteur, fiche complète) pour l'organisation; pas d'annuaire public en Phase 1. |
+| Annuaire consultable | 🟡 | Annuaire interne `/admin/participants` (recherche, filtre par secteur, fiche complète) pour l'organisation; pas d'annuaire public des entreprises en Phase 1. Les entreprises ont toutefois une vitrine publique des événements (`/<organisation>`) et, dans leur espace, la liste des événements ouverts avec inscription en un clic. |
 
 ## Section 2 — Algorithme de matchmaking
 
@@ -45,6 +45,7 @@ Légende : ✅ livré · 🟡 livré autrement (même résultat, mécanisme diff
 | Ajout au calendrier (.ics, Google Calendar, Apple Calendar) | ✅ | Page publique et espace participant : « Ajouter à mon calendrier » (.ics pour Apple, Outlook…) et « Google Agenda ». Le courriel de confirmation d'inscription offre les deux mêmes liens. |
 | Achat de billets (Stripe) ou redirection vers Eventbrite | 🟡 | Champ « Lien de billetterie » sur l'événement → bouton « Acheter mon billet » sur la page publique et dans l'espace participant (Eventbrite, Zeffy…). Paiement intégré Stripe : Phase 2. |
 | Liste des participants inscrits | ✅ | Onglet Inscrits (recherche, filtres, import CSV, export CSV). |
+| Faire connaître les événements aux entreprises | ✅ | Vitrine publique `/<organisation>` (tous les événements à venir, « S'inscrire », calendrier), « Autres événements ouverts » dans l'espace participant, et « Inviter les participants passés » (courriel avec inscription en un clic, désabonnement en un clic). |
 
 ## Choix technologiques
 

@@ -213,6 +213,7 @@ model Participant {
   description    String?      @db.Text // 300 characters max
   tokenVersion   Int          @default(0) // increment to revoke every link
   consentedAt    DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
+  invitationsOptOut Boolean @default(false) // ADDED: « Ne plus recevoir d'invitations » (anti-spam law)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime? // logical deletion (Law 25); identifying fields are anonymized
@@ -251,6 +252,7 @@ model Event {
   matchedAt             DateTime?
   publishedAt           DateTime?
   reminderSentAt        DateTime? // ADDED
+  invitationsStartedAt  DateTime? // ADDED: start of the latest « Inviter les participants passés » run
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 

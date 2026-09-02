@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { BellRingIcon, MailCheckIcon, SendIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  BellRingIcon,
+  MailCheckIcon,
+  SendIcon,
+  ShieldCheckIcon,
+  UserRoundPlusIcon,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +24,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ActionSwap } from "@/components/shared/action-swap";
-import { publishMatches, sendBatch, startReminderRun } from "@/server/actions/publication";
+import {
+  publishMatches,
+  sendBatch,
+  startInvitationRun,
+  startReminderRun,
+} from "@/server/actions/publication";
 import type { EmailBatchKind } from "@/server/services/publication";
 import type { ActionState } from "@/server/actions/types";
 import type { PublicationOverview } from "@/server/services/publication";
@@ -35,6 +46,7 @@ const LABELS: Record<EmailBatchKind, { running: string; done: string }> = {
   publish: { running: "Envoi des jumelages…", done: "Jumelages envoyés" },
   reminder: { running: "Envoi du rappel…", done: "Rappel envoyé" },
   consent: { running: "Envoi des demandes de consentement…", done: "Demandes envoyées" },
+  invite: { running: "Envoi des invitations…", done: "Invitations envoyées" },
 };
 
 /**
@@ -89,10 +101,55 @@ export function PublishPanel({
   const canPublish =
     overview.totalMatches > 0 && !["COMPLETED", "ARCHIVED"].includes(overview.status);
   const firstTime = !overview.publishedAt;
+  const invitations = overview.invitations;
+  const canInvite = invitations.registrationOpen && invitations.invitable > 0;
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <AlertDialog>
+          <AlertDialogTrigger
+            render={
+              <Button
+                variant={canPublish ? "outline" : "default"}
+                size="lg"
+                className="al-group h-auto min-h-12 justify-start gap-3 py-3"
+                disabled={!canInvite || busy}
+              >
+                <UserRoundPlusIcon aria-hidden="true" />
+                <span className="text-left">
+                  <span className="block font-semibold">Inviter les participants passés</span>
+                  <span className="block text-xs font-normal opacity-90">
+                    {invitations.registrationOpen
+                      ? `${invitations.invitable} entreprise${invitations.invitable > 1 ? "s" : ""} à inviter`
+                      : "Inscriptions fermées"}
+                    {invitations.sent
+                      ? ` · ${invitations.sent} déjà invitée${invitations.sent > 1 ? "s" : ""}`
+                      : ""}
+                  </span>
+                </span>
+              </Button>
+            }
+          />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Inviter les participants passés?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {`${invitations.invitable} entreprise${invitations.invitable > 1 ? "s" : ""} de votre annuaire, pas encore inscrite${invitations.invitable > 1 ? "s" : ""} à cet événement, recevront un courriel avec un lien d'inscription en un clic (par lots de 20). Chaque personne n'est invitée qu'une fois par événement; celles qui ont demandé à ne plus recevoir d'invitations sont exclues.`}
+                {invitations.optedOut
+                  ? ` ${invitations.optedOut} personne${invitations.optedOut > 1 ? "s" : ""} ne souhaite${invitations.optedOut > 1 ? "nt" : ""} plus être invitée${invitations.optedOut > 1 ? "s" : ""}.`
+                  : ""}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={() => loop("invite", () => startInvitationRun(eventId))}>
+                Envoyer les invitations
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <AlertDialog>
           <AlertDialogTrigger
             render={

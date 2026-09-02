@@ -39,6 +39,14 @@ inscriptions. Le bouton **QR** de l'onglet Détails donne une affiche à imprime
 
 ## 4. Les inscriptions
 
+- **Votre vitrine** `/<organisation>` (ex. : `app…/demo`) liste tous vos événements à venir avec
+  « S'inscrire » et l'ajout au calendrier. C'est le lien à mettre sur votre site et vos réseaux.
+- **Inviter les participants passés** (onglet Publication de l'événement) : chaque entreprise de
+  votre annuaire qui n'est pas encore inscrite reçoit un courriel avec un lien d'inscription en un
+  clic, par lots de 20. Une seule invitation par personne et par événement; celles qui ont cliqué
+  « Ne plus recevoir d'invitations » sont exclues automatiquement (loi anti-pourriel).
+- Depuis son espace personnel, une entreprise voit aussi vos « Autres événements ouverts » et
+  s'y inscrit en un clic avec son profil.
 - La page publique `/<organisation>/<événement>` : le participant remplit son profil (offres,
   besoins, « Avec qui voulez-vous collaborer? »), accepte l'avis de confidentialité et reçoit un
   courriel de confirmation avec son **lien personnel**.

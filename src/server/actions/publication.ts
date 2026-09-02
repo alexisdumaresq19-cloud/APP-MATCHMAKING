@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireOrganizerAction } from "@/lib/auth/session";
 import { isAppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { startInvitations } from "@/server/services/invitations";
 import {
   runEmailBatch,
   startPublication,
@@ -53,10 +54,27 @@ export async function startReminderRun(eventId: string): Promise<ActionState> {
   }
 }
 
+/** Step 1 of « Inviter les participants passés » (S5-03). */
+export async function startInvitationRun(eventId: string): Promise<ActionState> {
+  const { organizer, organization } = await requireOrganizerAction();
+  try {
+    await startInvitations(eventId, organization.id, {
+      actorType: "organizer",
+      actorId: organizer.id,
+    });
+    for (const path of pathsOf(eventId)) revalidatePath(path);
+    return { ok: true, message: "Envoi des invitations en cours…" };
+  } catch (error) {
+    if (isAppError(error)) return { ok: false, formError: error.message };
+    logger.error({ err: error }, "invitation start failed");
+    return { ok: false, formError: GENERIC_ERROR };
+  }
+}
+
 /** Sends the next batch (20 emails) of the given kind; the client calls it until remaining = 0. */
 export async function sendBatch(eventId: string, kind: EmailBatchKind): Promise<BatchState> {
   const { organization } = await requireOrganizerAction();
-  if (!["publish", "reminder", "consent"].includes(kind)) {
+  if (!["publish", "reminder", "consent", "invite"].includes(kind)) {
     return { ok: false, formError: "Type d'envoi inconnu." };
   }
   try {

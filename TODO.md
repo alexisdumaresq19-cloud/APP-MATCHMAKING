@@ -72,6 +72,7 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] Vérification point par point : `docs/LIGNE_DIRECTRICE.md` (livré / partiel / Phase 2)
 - [x] Règle « ET/OU » des secteurs recherchés dans le score (D-34), défauts couvrant ses exemples
 - [x] Lien de billetterie externe + ajout au calendrier (`.ics`, Google Agenda)
+- [x] Vitrine publique `/<organisation>`, « Autres événements ouverts » + inscription en un clic, « Inviter les participants passés » avec désabonnement (D-35)
 
 ## Liste de vérification sécurité (section 9)
 - [x] Toutes les entrées validées avec Zod côté serveur (`src/lib/validation`)

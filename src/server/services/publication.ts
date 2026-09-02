@@ -9,11 +9,12 @@ import { matchesFingerprint } from "@/lib/publication";
 import { roundStartsAt, tableName } from "@/lib/rounds";
 import type { PublishedMatch, PublishedSeat } from "@/lib/email/templates/matches-published";
 import { currentConsentVersion } from "./consent";
+import { getInvitationOverview, runInvitationBatch, type InvitationOverview } from "./invitations";
 import { sendConsentPending, sendMatchesPublished, sendReminder } from "./participant-emails";
 
 export const EMAIL_BATCH_SIZE = 20;
 
-export type EmailBatchKind = "publish" | "reminder" | "consent";
+export type EmailBatchKind = "publish" | "reminder" | "consent" | "invite";
 
 export type BatchProgress = {
   sent: number;
@@ -37,6 +38,8 @@ export type PublicationOverview = {
   emails: { sent: number; failed: number };
   reminders: { sent: number; failed: number };
   daysUntilEvent: number;
+  /** « Inviter les participants passés » (S5-03). */
+  invitations: InvitationOverview;
 };
 
 type Actor = { actorType: "organizer" | "system"; actorId?: string | null };
@@ -119,7 +122,7 @@ export async function getPublicationOverview(
   organizationId: string,
 ): Promise<PublicationOverview> {
   const event = await loadEvent(eventId, organizationId);
-  const [targets, totalMatches, seated, logs] = await Promise.all([
+  const [targets, totalMatches, seated, logs, invitations] = await Promise.all([
     listTargets(eventId),
     prisma.match.count({ where: { eventId, status: { not: "EXCLUDED" } } }),
     prisma.tableAssignment.count({ where: { registration: { eventId }, round: 1 } }),
@@ -128,6 +131,7 @@ export async function getPublicationOverview(
       where: { eventId, template: { in: ["matches_published", "reminder"] } },
       _count: { _all: true },
     }),
+    getInvitationOverview(eventId, organizationId),
   ]);
   const consented = await consentedSet(
     event.organization,
@@ -160,6 +164,7 @@ export async function getPublicationOverview(
     },
     reminders: { sent: count("reminder", "sent"), failed: count("reminder", "failed") },
     daysUntilEvent: Math.ceil((event.startsAt.getTime() - Date.now()) / 86_400_000),
+    invitations,
   };
 }
 
@@ -270,6 +275,8 @@ export async function runEmailBatch(
   kind: EmailBatchKind,
   size = EMAIL_BATCH_SIZE,
 ): Promise<BatchProgress> {
+  // Invitations go to people who are NOT registered: a different queue, same batch mechanics.
+  if (kind === "invite") return runInvitationBatch(eventId, organizationId, size);
   const event = await loadEvent(eventId, organizationId);
   const organization = event.organization;
   const targets = await listTargets(eventId);

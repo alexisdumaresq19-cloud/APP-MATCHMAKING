@@ -13,6 +13,7 @@ export type EmailTemplateName =
   | "password_reset"
   | "consent_pending"
   | "deletion_confirmed"
+  | "deletion_requested"
   | "organizer_invite"
   | "participant_link";
 

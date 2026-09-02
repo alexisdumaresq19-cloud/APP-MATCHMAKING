@@ -9,6 +9,7 @@ const PUBLIC_ADMIN_PATHS = [
   "/admin/connexion",
   "/admin/mot-de-passe-oublie",
   "/admin/reinitialiser",
+  "/admin/invitation",
 ];
 
 export default auth((request) => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDaysIcon, UserRoundIcon } from "lucide-react";
+import { CalendarDaysIcon, ShieldCheckIcon, UserRoundIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ParticipantNav({ token }: { token: string }) {
@@ -20,6 +20,12 @@ export function ParticipantNav({ token }: { token: string }) {
       label: "Mon profil",
       icon: UserRoundIcon,
       active: pathname.startsWith(`${base}/profil`),
+    },
+    {
+      href: `${base}/donnees`,
+      label: "Mes données",
+      icon: ShieldCheckIcon,
+      active: pathname.startsWith(`${base}/donnees`),
     },
   ];
   return (

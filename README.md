@@ -102,22 +102,88 @@ verrouillage progressif après 5 échecs; en-têtes de sécurité (CSP, HSTS, X-
 rate limiting (Upstash ou table `RateLimit`); honeypot + délai minimal sur le formulaire public;
 liens magiques consommés en POST seulement; aucune donnée personnelle dans les URL ni les journaux.
 
-## Déploiement (Vercel + Supabase/Neon)
+## Déploiement (Vercel + Neon) pas à pas
 
-1. Créer la base (Supabase : copier l'URL « Transaction pooler » dans `DATABASE_URL` et l'URL
-   directe dans `DIRECT_URL`; Neon : la même URL dans les deux).
-2. Sur Vercel, importer le dépôt, définir toutes les variables de `.env.example` (production),
-   `AUTH_URL` et `APP_BASE_URL` = URL finale en HTTPS.
-3. Vercel utilise automatiquement `pnpm vercel-build` (migrations, démo si la base est vide et que
-   `SEED_DEMO` n'est pas `false`, puis build). Les variables injectées par l'intégration Neon/Postgres de Vercel
-   (`POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, `DATABASE_URL_UNPOOLED`…) sont reconnues sans
-   configuration; `APP_BASE_URL` et `AUTH_URL` sont déduites du domaine Vercel si absentes.
-4. Créer l'organisation réelle : `pnpm create-org …` (avec les variables de production), puis se
-   connecter et changer le mot de passe temporaire.
-5. Configurer Resend (domaine vérifié) et `EMAIL_FROM`.
+L'application tourne en production sur Vercel avec une base PostgreSQL Neon; Supabase fonctionne
+aussi (mêmes étapes, URL « Transaction pooler » dans `DATABASE_URL` et URL directe dans
+`DIRECT_URL`).
 
-La procédure détaillée, la sauvegarde/restauration et la checklist de mise en service seront
-complétées à la semaine 4 (voir `PLAN.md`).
+1. **Base de données** — Sur [neon.tech](https://neon.tech), créer un projet (région la plus
+   proche : `us-east`). Copier la chaîne de connexion. Avec Neon, la même URL sert pour
+   `DATABASE_URL` et `DIRECT_URL`.
+2. **Vercel** — Importer le dépôt GitHub. Dans *Settings › Environment Variables* (Production),
+   définir :
+   - `DATABASE_URL`, `DIRECT_URL` (ou installer l'intégration Neon, dont les variables sont
+     reconnues automatiquement);
+   - `AUTH_SECRET` et `PARTICIPANT_TOKEN_SECRET` (`openssl rand -base64 32`, deux valeurs
+     différentes);
+   - `AUTH_URL` et `APP_BASE_URL` = l'URL finale en HTTPS (déduites du domaine Vercel si absentes);
+   - `RESEND_API_KEY` et `EMAIL_FROM` (voir l'étape 5), `SEED_DEMO=false` pour une base réelle.
+3. **Build** — Vercel exécute `pnpm vercel-build` : migrations Prisma, démonstration si la base est
+   vide et `SEED_DEMO` n'est pas `false`, puis `next build`. Chaque `git push` redéploie.
+4. **Organisation réelle** — Depuis votre poste, avec les variables de production dans `.env` :
+
+   ```bash
+   pnpm create-org --slug allyson --name "Nom de l'organisation" \
+     --owner-email proprietaire@exemple.com --owner-name "Prénom Nom" \
+     --privacy-email confidentialite@exemple.com
+   ```
+
+   Le script affiche un mot de passe temporaire; se connecter sur `/admin/login`, le changer, puis
+   inviter l'équipe (Réglages › Comptes). Retirer la démonstration : `pnpm remove-demo --yes`.
+5. **Courriels** — Sur [resend.com](https://resend.com), vérifier votre domaine (enregistrements DNS
+   fournis), créer une clé d'API, puis `EMAIL_FROM="Jumelage <no-reply@votre-domaine>"`. Sans
+   domaine vérifié, `onboarding@resend.dev` n'écrit qu'à votre propre adresse.
+6. **Domaine** — Vercel › *Domains* : ajouter le domaine, suivre les instructions DNS; HTTPS est
+   automatique. Mettre `AUTH_URL` et `APP_BASE_URL` à jour, puis redéployer.
+
+## Sauvegarde et restauration
+
+Neon conserve un historique point-dans-le-temps (7 jours en formule gratuite, plus en payant) et
+Supabase des sauvegardes quotidiennes. Pour une copie que vous contrôlez :
+
+```bash
+# Sauvegarde complète (schéma + données, logo inclus) — à programmer chaque semaine
+pg_dump "$DIRECT_URL" --format=custom --file="jumelage-$(date +%F).dump"
+
+# Restauration dans une base vide
+pg_restore --clean --if-exists --no-owner --dbname "$DIRECT_URL" jumelage-2026-09-02.dump
+```
+
+Après une restauration, exécuter `pnpm db:deploy` pour appliquer les migrations manquantes.
+Gardez les fichiers `.dump` chiffrés (ils contiennent des renseignements personnels) et supprimez
+ceux de plus de 12 mois.
+
+## Checklist de mise en service
+
+- [ ] `AUTH_SECRET` et `PARTICIPANT_TOKEN_SECRET` distincts, générés pour la production
+- [ ] `SEED_DEMO=false` et `pnpm remove-demo --yes` exécuté (plus d'organisation « demo »)
+- [ ] Organisation réelle créée, mot de passe temporaire changé, équipe invitée
+- [ ] Domaine Resend vérifié, courriel de test reçu (Réglages › Comptes › Renvoyer l'invitation)
+- [ ] Réglages › Organisation : logo, couleurs, courriel du responsable de la confidentialité
+- [ ] Réglages › Consentement : texte relu et adopté (voir `docs/LOI25.md`)
+- [ ] Domaine final en HTTPS; `AUTH_URL` et `APP_BASE_URL` à jour
+- [ ] Première sauvegarde `pg_dump` faite et rangée
+- [ ] Un événement de test créé, une inscription faite, le courriel reçu, puis l'événement archivé
+
+## FAQ
+
+**Les courriels n'arrivent pas.** Sans `RESEND_API_KEY` ni `SMTP_*`, rien ne part : les messages
+sont visibles dans `/admin/courriels`. Avec Resend, vérifiez le domaine et `EMAIL_FROM`.
+
+**« Lien expiré » pour un participant.** Onglet Inscrits › « Renvoyer le lien ». Les liens sont
+révoqués quand le profil est anonymisé ou que `PARTICIPANT_TOKEN_SECRET` change.
+
+**Plus aucun propriétaire ne peut se connecter.** `pnpm create-org` ne sert qu'aux nouvelles
+organisations; pour réinitialiser un mot de passe, utilisez « Mot de passe oublié » (courriels
+requis) ou, en dernier recours, mettez `passwordHash` à `NULL` en base et renvoyez une invitation
+depuis un autre compte propriétaire.
+
+**Changer de fournisseur de base.** `pg_dump` chez l'ancien, `pg_restore` chez le nouveau, mettre
+`DATABASE_URL`/`DIRECT_URL` à jour, redéployer.
+
+**Où est le guide d'utilisation?** `docs/GUIDE_ORGANISATRICE.md`; le fonctionnement du jumelage
+est dans `docs/MATCHING.md`; la conformité Loi 25 dans `docs/LOI25.md`.
 
 ## Licence
 

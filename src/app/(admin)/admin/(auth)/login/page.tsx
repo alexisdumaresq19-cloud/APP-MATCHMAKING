@@ -14,6 +14,10 @@ const NOTICES: Record<string, { variant: "info" | "success" | "error"; message: 
     message: "Votre mot de passe a été modifié. Vous pouvez vous connecter.",
   },
   deconnecte: { variant: "info", message: "Vous êtes déconnecté." },
+  "invitation-acceptee": {
+    variant: "success",
+    message: "Votre compte est activé. Connectez-vous avec votre nouveau mot de passe.",
+  },
 };
 
 export default async function LoginPage({

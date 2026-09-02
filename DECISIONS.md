@@ -252,3 +252,36 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   campagne de rappel; les inscrits déjà servis sont reconnus par leurs entrées `EmailLog` postérieures.
 - **Raison** : la facturation (section 9) doit être auditable et stable; un marqueur par campagne
   évite un champ de plus par inscription.
+
+## D-31 — Logo conservé dans la base de données, pas dans un stockage externe
+- **Contexte** : le plan prévoyait Supabase Storage pour le logo. La production tourne sur Neon
+  (pas de bucket) et un seul fichier de 2 Mo au plus par organisation ne justifie ni un compte de
+  stockage, ni des clés de service, ni une politique de bucket.
+- **Décision** : `Organization.logoData` (bytes) + `logoMimeType`; le type réel est détecté par les
+  premiers octets (PNG, JPEG, WebP; SVG refusé), la taille plafonnée à 2 Mo, le nom jamais
+  réutilisé. La route `/<slug>/logo?v=<updatedAt>` sert l'image avec un cache long; changer de
+  logo change l'URL.
+- **Raison** : zéro variable d'environnement de plus, sauvegardé avec la base (`pg_dump` emporte
+  le logo), et la vérification MIME côté serveur exigée par la section 9 se fait au même endroit.
+
+## D-32 — Comptes : invitation par jeton, garde-fous « dernier propriétaire » et « soi-même »
+- **Décision** : inviter crée l'`Organizer` sans mot de passe et envoie un `OrganizerToken` de
+  type `INVITE` (7 jours, usage unique, consommé en POST par `acceptInvitation`). Un compte sans
+  mot de passe apparaît « Invitation en attente » et peut recevoir un nouveau lien. Le service
+  refuse : de rétrograder ou désactiver le dernier propriétaire actif, de se désactiver soi-même,
+  de changer son propre rôle. Tout changement de rôle ou d'état incrémente `sessionVersion`, ce qui
+  déconnecte la personne partout.
+- **Raison** : aucune organisation ne doit pouvoir se retrouver sans administrateur; une
+  désactivation doit être immédiate (départ d'une employée).
+
+## D-33 — Versions du consentement et file de suppression (Loi 25)
+- **Décision** : chaque texte adopté est une ligne `ConsentTextVersion` (hachage SHA-256 unique par
+  organisation, auteur, note); `Organization.consentText/consentVersion` restent la « version en
+  vigueur » pour ne rien changer au parcours d'inscription. Restaurer une ancienne version la
+  réadopte (même hachage : les acceptations passées redeviennent valides). La suppression suit une
+  file : demande du participant (limitée à 3/jour) → courriel au responsable → « Anonymiser »
+  (courriel de confirmation d'abord, puis effacement en une transaction, `tokenVersion + 1`) ou
+  « Refuser » avec motif conservé. Les inscriptions restent, anonymes, pour la facturation.
+- **Raison** : la Loi 25 exige la preuve du texte accepté et une réponse en 30 jours; la section 9
+  exige que la facturation ne bouge pas. Séparer « demande » et « anonymisation » donne à
+  l'Organisatrice le temps de vérifier l'identité et une trace de chaque décision.

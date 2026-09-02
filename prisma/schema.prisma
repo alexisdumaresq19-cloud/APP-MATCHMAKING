@@ -81,7 +81,9 @@ model Organization {
   slug           String   @unique // e.g. "allyson-handfield"
   name           String // legal / trade name of the organizer
   platformName   String   @default("Jumelage") // displayed platform name
-  logoUrl        String?
+  logoUrl        String? // public URL of the logo (served by /[orgSlug]/logo when stored in the database)
+  logoData       Bytes? // ADDED: logo file (PNG/JPEG/WebP, 2 MB max), stored in the database (D-31)
+  logoMimeType   String? // ADDED
   primaryColor   String   @default("#1F3864")
   accentColor    String   @default("#F2C94C")
   consentText    String   @db.Text // Law 25 notice shown at registration
@@ -102,6 +104,22 @@ model Organization {
   organizerTokens  OrganizerToken[]
   deletionRequests DeletionRequest[]
   billingSnapshots BillingSnapshot[]
+  consentVersions  ConsentTextVersion[] // ADDED
+}
+
+/// ADDED: every version of the Law 25 notice ever adopted by an organization (S4-02).
+model ConsentTextVersion {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  version        String // sha256 of the text (same value as Organization.consentVersion)
+  text           String       @db.Text
+  createdById    String? // organizer id, null for the system
+  note           String?
+  createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, version])
+  @@index([organizationId, createdAt])
 }
 
 model Organizer {

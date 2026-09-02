@@ -57,7 +57,16 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] S3-10 Seed : matching et placement sur l'événement ouvert et sur l'événement passé
 
 ## Semaine 4 — Finition et production
-- [ ] S4-01 … S4-10 (voir PLAN.md)
+- [x] S4-01 Réglages › Organisation : nom, plateforme, courriels, fuseau, couleurs avec aperçu, logo (base de données, MIME vérifié, 2 Mo — D-31)
+- [x] S4-02 Réglages › Consentement : éditeur, versions (SHA-256), historique, restauration
+- [x] S4-03 Réglages › Comptes : invitation par courriel (jeton 7 jours), rôle, désactivation, garde-fous (D-32)
+- [x] S4-04 Réglages › Facturation (lecture seule)
+- [x] S4-05 Loi 25 : « Mes données » (JSON + CSV), demande de suppression → file admin → anonymisation + audit + courriel; export depuis la fiche
+- [x] S4-06 Annuaire `/admin/participants` (recherche, secteur, pagination) + fiche complète
+- [x] S4-07 Tableau de bord (livré en S2-S3; compteur de demandes de suppression ajouté)
+- [x] S4-08 Squelettes de chargement, manifeste PWA + icônes, états vides, toasts; Lighthouse : à mesurer sur le domaine final (IDEES_PHASE2)
+- [x] S4-09 Documentation : README (déploiement pas à pas, sauvegarde, checklist, FAQ), `docs/GUIDE_ORGANISATRICE.md`, `docs/LOI25.md`
+- [x] S4-10 Production : Vercel + Neon en ligne (app-matchmaking.vercel.app), `pnpm create-org`, `pnpm remove-demo` · [ ] domaine final + organisation réelle (action de la cliente)
 
 ## Liste de vérification sécurité (section 9)
 - [x] Toutes les entrées validées avec Zod côté serveur (`src/lib/validation`)
@@ -65,15 +74,15 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] Jetons participants signés (HS256), expiration, `tokenVersion`
 - [x] Mots de passe argon2id; journaux pino avec `redact` (mots de passe, jetons, cookies)
 - [x] En-têtes de sécurité (CSP, HSTS, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy)
-- [x] Rate limiting : inscription publique, login, lien magique, réinitialisation, renvoi de lien participant · [ ] demande de suppression (S4)
+- [x] Rate limiting : inscription publique, login, lien magique, réinitialisation, renvoi de lien participant, demande de suppression (3/participant/jour, 10/IP/jour)
 - [x] Honeypot + délai minimal ≥ 3 s sur le formulaire public
 - [x] CSRF : server actions + cookies sameSite; liens magiques consommés en POST; aucun GET qui modifie l'état
-- [ ] Uploads : MIME vérifié côté serveur, taille limitée, nom régénéré (S4-01)
+- [x] Uploads : MIME détecté par les octets (PNG/JPEG/WebP, SVG refusé), 2 Mo max, nom jamais réutilisé (`src/lib/uploads.ts`, test unitaire + E2E)
 - [x] Aucune donnée personnelle dans les URL (sauf jeton opaque) ni dans les journaux
 - [x] `pnpm audit --audit-level=high` dans la CI (surcharges pnpm, voir D-19)
-- [ ] Procédure de sauvegarde documentée (S4-09)
+- [x] Procédure de sauvegarde/restauration documentée (README › Sauvegarde)
 
 ## Bloqué / questions ouvertes
 - Nom d'affichage de la plateforme (`[NOM_APP]`) : « Jumelage » utilisé par défaut.
-- Domaine de production et fournisseur de base de données (Supabase vs Neon) : à confirmer
-  avant la semaine 4; aucun impact sur le code.
+- Domaine de production : à fournir par la cliente (Vercel › Domains), puis mettre `AUTH_URL` et
+  `APP_BASE_URL` à jour. Base de données : Neon (décidé, en ligne).

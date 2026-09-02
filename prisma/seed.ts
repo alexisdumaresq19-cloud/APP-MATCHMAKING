@@ -90,6 +90,9 @@ async function main() {
       consentVersion,
       privacyEmail: "confidentialite@demo.local",
       replyToEmail: "bonjour@demo.local",
+      consentVersions: {
+        create: { version: consentVersion, text: consentText, note: "Texte initial" },
+      },
     },
   });
 

@@ -56,6 +56,9 @@ async function main() {
       platformName: values["platform-name"] ?? "Jumelage",
       consentText,
       consentVersion: hashConsentText(consentText),
+      consentVersions: {
+        create: { version: hashConsentText(consentText), text: consentText, note: "Texte initial" },
+      },
       privacyEmail,
       replyToEmail,
       organizers: {

@@ -26,3 +26,13 @@ Retenu en Phase 1 : « Avec qui aimeriez-vous collaborer? » avec secteurs pré-
 - Achat de billets (Stripe ou lien Eventbrite) et calendrier des événements avec ajout `.ics` / Google / Apple.
 - Filtrage collaboratif : apprendre des acceptations (ex. 80 % des garderies acceptent les traiteurs) pour ajuster automatiquement les suggestions et la matrice d'affinité.
 - Score « 70 % étiquettes / 30 % distance » avec géolocalisation (latitude/longitude) plutôt que la région administrative.
+
+## Après la semaine 4 (septembre 2026)
+
+- Sentry (ou équivalent) branché sur `SENTRY_DSN` pour les erreurs serveur et client; pour l'instant, journaux pino sur Vercel.
+- Mesure Lighthouse automatisée (Lighthouse CI dans GitHub Actions) sur la page publique du domaine final; objectif ≥ 90 mobile.
+- Purge automatique des profils inactifs (ex. 24 mois après le dernier événement), avec préavis par courriel.
+- Stockage externe (Vercel Blob ou Supabase Storage) si la cliente veut des images plus lourdes qu'un logo (bannières d'événement).
+- Double authentification (TOTP) pour les comptes propriétaires.
+- Export de l'annuaire complet en CSV (avec filtre) depuis `/admin/participants`.
+- Registre des incidents de confidentialité tenu dans l'application plutôt qu'à côté.

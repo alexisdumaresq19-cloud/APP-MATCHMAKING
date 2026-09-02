@@ -27,6 +27,7 @@ import {
   passwordResetRequestSchema,
   passwordResetSchema,
 } from "@/lib/validation/auth";
+import { acceptInvitationSchema } from "@/lib/validation/organization";
 import { fieldErrorsOf, formDataToObject } from "@/lib/validation/common";
 import { GENERIC_ERROR, type ActionState } from "./types";
 
@@ -235,4 +236,49 @@ export async function resetPassword(
 
 export async function logout(): Promise<void> {
   await signOut({ redirectTo: "/admin/login" });
+}
+
+/** Invitation acceptance (S4-03): the invited organizer chooses a password and can log in. */
+export async function acceptInvitation(
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = acceptInvitationSchema.safeParse(formDataToObject(formData));
+  if (!parsed.success) return { ok: false, fieldErrors: fieldErrorsOf(parsed.error) };
+
+  const ip = await clientIp();
+  const limit = await rateLimit(`invite-consume:ip:${ip}`, { limit: 20, windowSeconds: 15 * 60 });
+  if (!limit.ok) return { ok: false, formError: TOO_MANY };
+
+  const organizer = await consumeOrganizerToken(parsed.data.token, "INVITE");
+  if (!organizer) {
+    return {
+      ok: false,
+      formError: "Cette invitation n'est plus valide. Demandez-en une nouvelle à un propriétaire.",
+    };
+  }
+  try {
+    await prisma.organizer.update({
+      where: { id: organizer.id },
+      data: {
+        passwordHash: await hashPassword(parsed.data.password),
+        sessionVersion: { increment: 1 },
+        failedLoginCount: 0,
+        lockedUntil: null,
+      },
+    });
+  } catch (error) {
+    logger.error({ err: error }, "invitation acceptance failed");
+    return { ok: false, formError: GENERIC_ERROR };
+  }
+  await audit({
+    organizationId: organizer.organizationId,
+    actorType: "organizer",
+    actorId: organizer.id,
+    action: "UPDATE",
+    entity: "Organizer",
+    entityId: organizer.id,
+    metadata: { change: "invitation_accepted" },
+  });
+  redirect("/admin/login?raison=invitation-acceptee");
 }

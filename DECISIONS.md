@@ -163,3 +163,33 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   si `SEED_DEMO=true` et la base est vide, puis construit l'application.
 - **Raison** : mise en route en une commande pour les essais; à la semaine 4, `SEED_DEMO` est retiré
   de la production et la démo supprimée.
+
+## D-22 — Placement : répartition égale puis recherche locale itérée
+- **Contexte** : la construction gloutonne « table par table jusqu'à `seats` » entasse les meilleurs
+  pivots dans les premières tables et laisse les dernières vides ou faibles.
+- **Décision** : chaque table reçoit d'abord un pivot (le participant au plus fort score total
+  restant), puis les tables sont remplies à tour de rôle jusqu'à ⌈n / tables⌉, puis complétées. La
+  recherche locale est une descente par premier gain (déplacement ou échange) suivie de
+  perturbations aléatoires avec conservation de la meilleure configuration (recherche locale
+  itérée), au lieu d'échanges purement aléatoires.
+- **Raison** : sur 24 personnes, 6 tables de 4 et 3 rondes, 0 répétition; sur 24 personnes et 4
+  tables de 6, le minimum théorique (8 répétitions par ronde) est atteint. Reproductible à graine
+  égale; le budget de temps (500 ms au total) n'est qu'un garde-fou.
+
+## D-23 — Statut de l'événement au lancement du matching
+- **Décision** : lancer le matching sur un événement OPEN ne change pas son statut (aperçu
+  possible pendant les inscriptions); sur un événement CLOSED, il passe à MATCHED.
+- **Raison** : l'organisatrice veut voir les jumelages évoluer sans fermer les inscriptions; la
+  chaîne OPEN → CLOSED → MATCHED → PUBLISHED reste le parcours nominal.
+
+## D-24 — Import CSV : aucun courriel à l'importation
+- **Décision** : l'importation crée les inscriptions (source IMPORT, consentement en attente) sans
+  envoyer de courriel. Les demandes de consentement partent individuellement (fiche de l'inscrit)
+  ou par lot avec la file d'envoi de la semaine 3.
+- **Raison** : envoyer des centaines de courriels dans une action serveur dépasserait les limites
+  de temps d'exécution (Vercel); la file d'envoi par lots de 20 est prévue pour la publication.
+
+## D-25 — Participants sans secteur ignorés par le matching
+- **Décision** : conformément au cahier des charges, seuls les inscrits non annulés **avec un
+  secteur** sont jumelés; les autres sont listés dans l'onglet Matching avec un rappel de compléter
+  leur profil. Une région manquante vaut un score neutre (50), pas une exclusion.

@@ -21,10 +21,25 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] S1-16 Seed de démonstration (org `demo`, 18 secteurs, matrice, 120 participants, 3 événements, snapshot) + `create-org`
 - [x] S1-17 CI GitHub Actions (lint, typecheck, tests + Postgres, build, E2E, audit) + 12 tests Playwright
 - [x] S1-18 README + résumé du jalon (voir la description de la PR)
-- [ ] S1-19 (reporté en S2) Autocomplétion des tags à partir des tags existants (composant prêt : `suggestions`)
+- [x] S1-19 Autocomplétion des tags (livrée en S2-13)
 
 ## Semaine 2 — Matching
-- [ ] S2-01 … S2-14 (voir PLAN.md)
+- [x] S2-01 Similarité de chaînes (Dice sur bigrammes, seuil 0,85, mémoïsée)
+- [x] S2-02 Score de paire + raisons JSON + exclusions + régions voisines
+- [x] S2-03 Phrases en français à partir des raisons (jamais de score)
+- [x] S2-04 Sélection par participant (quota minimum visé, symétrie, seuil, abaissement par paliers)
+- [x] S2-05 Placement aux tables (glouton + recherche locale itérée, verrous, secteur, multi-rondes, PRNG)
+- [x] S2-06 Tests Vitest obligatoires, dont performance 300 / 15 tables / 3 rondes < 2 s
+- [x] S2-07 Service `runMatchingForEvent` (candidats, rencontres passées, affinités, persistance, audit)
+- [x] S2-08 Paramètres › Secteurs (ajout, renommage, ordre, désactivation)
+- [x] S2-09 Paramètres › Matrice d'affinité (grille symétrique, tout à 50, import/export CSV)
+- [x] S2-10 Paramètres › Règles de matching (jeux nommés, défaut, sliders expliqués)
+- [x] S2-11 Onglet Matching (résumé, pondérations, lancer/recalculer, vue par participant, épingler, exclure, jumelage manuel)
+- [x] S2-12 Inscrits : ajout manuel (MANUAL + courriel de consentement), import CSV (modèle, rapport d'erreurs), export CSV/XLSX
+- [x] S2-13 Autocomplétion des étiquettes (tags de l'organisation)
+- [x] S2-14 Seed : matching lancé sur l'événement OPEN
+- [ ] S2-15 (reporté en S3) Envoi groupé des demandes de consentement après un import (file d'envoi)
+- [ ] S2-16 (optionnel) Vue matrice secteur × secteur des scores moyens
 
 ## Semaine 3 — Tables, publication, jour J
 - [ ] S3-01 … S3-10 (voir PLAN.md)

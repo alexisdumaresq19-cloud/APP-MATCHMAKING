@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { FormAlert } from "@/components/shared/form-field";
 import {
   Table,
   TableBody,
@@ -65,9 +66,10 @@ export default async function RegistrantsPage({
   const event = await prisma.event.findFirst({ where: { id, organizationId: organization.id } });
   if (!event) notFound();
 
-  const [sectors, result] = await Promise.all([
+  const [sectors, result, tagSuggestions] = await Promise.all([
     getSectors(organization.id),
     listRegistrants(event.id, query),
+    getTagSuggestions(organization.id),
   ]);
   const consentVersion = currentConsentVersion(organization);
   const consentedIds = new Set(
@@ -108,8 +110,18 @@ export default async function RegistrantsPage({
     );
   };
 
+  const imported = typeof raw.import === "string" ? Number(raw.import) : null;
+  const reused = typeof raw.reutilises === "string" ? Number(raw.reutilises) : 0;
+  const ignored = typeof raw.ignores === "string" ? Number(raw.ignores) : 0;
+
   return (
     <div className="space-y-4">
+      {imported !== null ? (
+        <FormAlert
+          variant="success"
+          message={`Importation terminée : ${imported} inscription${imported > 1 ? "s" : ""} ajoutée${imported > 1 ? "s" : ""}${reused ? `, dont ${reused} profil${reused > 1 ? "s" : ""} existant${reused > 1 ? "s" : ""} réutilisé${reused > 1 ? "s" : ""}` : ""}${ignored ? `; ${ignored} déjà inscrit${ignored > 1 ? "s" : ""} ignoré${ignored > 1 ? "s" : ""}` : ""}.`}
+        />
+      ) : null}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
         <span>
           <strong className="text-foreground">{totalActive}</strong> inscrit
@@ -120,6 +132,36 @@ export default async function RegistrantsPage({
             {registrationStatusLabel(status as RegistrantSummary["status"])} : {count}
           </span>
         ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <AddRegistrantSheet
+          eventId={event.id}
+          sectors={activeSectors}
+          regions={REGIONS}
+          tagSuggestions={tagSuggestions}
+        />
+        <Link
+          href={`${base}/import`}
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          <UploadIcon aria-hidden="true" />
+          Importer un CSV
+        </Link>
+        <a
+          href={`${base}/export.csv${queryString(query, { page: 1 })}`}
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          <DownloadIcon aria-hidden="true" />
+          Exporter CSV
+        </a>
+        <a
+          href={`${base}/export.xlsx${queryString(query, { page: 1 })}`}
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          <DownloadIcon aria-hidden="true" />
+          Exporter Excel
+        </a>
       </div>
 
       <RegistrantsFilters
@@ -243,6 +285,7 @@ export default async function RegistrantsPage({
                           registrant={summary}
                           sectors={activeSectors}
                           regions={REGIONS}
+                          tagSuggestions={tagSuggestions}
                         />
                       </TableCell>
                     </TableRow>

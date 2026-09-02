@@ -1,0 +1,148 @@
+# DECISIONS.md — Journal des décisions d'architecture
+
+Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
+
+## D-01 — Next.js 15.5 (et non 16)
+- **Contexte** : le cahier des charges impose Next.js 15. Next.js 16 est la version « latest »
+  depuis fin 2025; 15.5 reste maintenue (étiquette `backport`, correctifs réguliers).
+- **Décision** : Next.js 15.5.x, App Router, TypeScript strict, Turbopack en dev, webpack en build.
+- **Raison** : respect du cahier des charges; écosystème (Auth.js v5, shadcn/ui, Prisma) éprouvé
+  sur 15; aucune fonctionnalité de 16 nécessaire à la Phase 1.
+- **Conséquences** : migration vers 16 (`middleware.ts` → `proxy.ts`, Turbopack build) notée dans
+  `IDEES_PHASE2.md`.
+
+## D-02 — Prisma 6.19 (et non 7)
+- **Contexte** : Prisma 7 remplace le générateur `prisma-client-js` par `prisma-client`, exige un
+  adaptateur de pilote et déplace l'URL de connexion dans `prisma.config.ts`.
+- **Décision** : Prisma 6.19.x avec le schéma exactement tel que fourni (`prisma-client-js`,
+  `url = env("DATABASE_URL")`, `directUrl = env("DIRECT_URL")`).
+- **Raison** : le schéma du cahier des charges est écrit pour Prisma 6; 6.19 est stable et
+  maintenue; la migration vers 7 est mécanique et isolée dans `src/lib/db/prisma.ts`.
+
+## D-03 — Lien magique et réinitialisation sans le provider Email d'Auth.js
+- **Contexte** : le provider Email d'Auth.js exige un adaptateur (`User`, `Account`,
+  `VerificationToken`) qui suppose un courriel unique globalement. Notre modèle `Organizer` est
+  unique par `(organizationId, email)` pour permettre le multi-organisation.
+- **Décision** : Auth.js v5 avec deux providers Credentials : `password` (courriel + mot de
+  passe) et `magic-link` (jeton à usage unique). Les jetons (lien magique, réinitialisation,
+  invitation) vivent dans la table `OrganizerToken` (hash SHA-256 du jeton, usage, expiration,
+  `usedAt`). Les courriels sont envoyés par notre couche courriel (Resend/SMTP).
+- **Raison** : pas d'adaptateur à tordre; un seul modèle d'organisateur; jetons révocables et
+  audités. Sessions JWT (obligatoires avec Credentials) en cookie httpOnly/secure/sameSite=lax.
+- **Conséquences** : la session porte `organizerId`, `organizationId`, `role`, `sessionVersion`;
+  le callback `jwt` revalide `sessionVersion`/`isActive` en base au plus toutes les 5 minutes.
+
+## D-04 — Jetons participants : JWT HS256 via `jose`
+- **Décision** : `/p/[token]` reçoit un JWT HS256 signé avec `PARTICIPANT_TOKEN_SECRET`, claims
+  `sub` (participantId), `org`, `v` (tokenVersion), `exp` (fin du dernier événement inscrit + 30
+  jours, minimum 60 jours). Vérification : signature, expiration, `v === participant.tokenVersion`,
+  `deletedAt === null`.
+- **Raison** : `jose` est déjà une dépendance transitive d'Auth.js, compatible Edge, format
+  standard. Révocation = incrémenter `tokenVersion`.
+- **Conséquences** : le même mécanisme (avec `purpose`) sert au lien « inscription en un clic »
+  pour un profil existant (`purpose: "register"`, `eventId`, expiration 7 jours).
+
+## D-05 — Hachage des mots de passe : argon2id via `@node-rs/argon2`
+- **Raison** : binaires précompilés (pas de node-gyp), fonctionne sur Vercel, paramètres par
+  défaut conformes (argon2id, m=19 MiB, t=2, p=1).
+
+## D-06 — Courriels : transport en cascade Resend → SMTP → console
+- **Décision** : `RESEND_API_KEY` présent → Resend; sinon `SMTP_HOST` présent → Nodemailer; sinon
+  transport « console » (journalise le courriel, écrit `EmailLog.status = "sent"` avec
+  `providerId = "console"`). Templates `react-email` rendus en HTML + texte brut.
+- **Raison** : développement et tests sans clé; production sans changement de code.
+
+## D-07 — Rate limiting : Upstash si configuré, sinon table `RateLimit` en base
+- **Décision** : `rateLimit(key, { limit, windowSeconds })` avec fenêtre fixe. Implémentation en
+  base par `UPSERT` atomique sur `(key)` avec `windowStart`; Upstash `@upstash/ratelimit` si les
+  variables sont présentes.
+- **Raison** : aucune dépendance obligatoire à Redis en Phase 1.
+
+## D-08 — Ajouts au schéma Prisma (aucun retrait)
+- `Organization.timezone` (`America/Toronto`) et `Organization.consentVersion` (hash SHA-256 du
+  texte courant, recalculé à chaque modification) — versionnage du consentement.
+- `Organizer.sessionVersion`, `failedLoginCount`, `lockedUntil` — déconnexion partout et
+  verrouillage progressif.
+- `Participant.consentedAt` — dénormalisation du dernier consentement (badge « en attente »).
+- Modèle `OrganizerToken` (lien magique, réinitialisation, invitation).
+- Modèle `DeletionRequest` (demande de suppression Loi 25 : participant → confirmation admin).
+- Modèle `RateLimit` (D-07).
+- `EventRegistration.publishedMatchesHash` et `publishedAt` — republication intelligente (S3-04).
+- `Event.reminderSentAt` — rappel J-1.
+- `AuditAction` : ajout de `LOGIN_FAILED`, `CHECK_IN`, `STATUS_CHANGE`.
+
+## D-09 — Isolation par organisation
+- **Décision** : `src/lib/db/org-scope.ts` expose `requireOrganizer()` (session → orgId) et des
+  accesseurs `orgEvent(orgId, eventId)`, `orgParticipant(orgId, id)`, `orgRegistration(...)` qui
+  lèvent `NotFoundError` si l'entité n'appartient pas à l'organisation. Les entités sans
+  `organizationId` (inscriptions, matchs, tables) sont filtrées via `event.organizationId`.
+- **Raison** : règle d'intégrité du cahier des charges; un test d'intégration (org A / org B) le
+  prouve.
+
+## D-10 — Texte d'interface en français directement dans les composants
+- **Décision** : pas de bibliothèque i18n; chaînes fr-CA en dur dans les composants, vouvoiement.
+- **Raison** : une seule langue en Phase 1; une bibliothèque ajouterait de la friction sans
+  bénéfice. Les dates sont formatées avec `Intl` (`fr-CA`, fuseau `Organization.timezone`).
+
+## D-11 — Police Inter auto-hébergée via `next/font/local`
+- **Décision** : fichiers woff2 d'Inter (variable, latin + latin-ext) copiés depuis
+  `@fontsource-variable/inter` dans `src/styles/fonts/`, chargés avec `next/font/local`.
+- **Raison** : `next/font/google` télécharge au build (réseau requis en CI); aucune ressource
+  tierce sur les pages publiques (Loi 25).
+
+## D-12 — Contenu de sécurité (CSP)
+- **Décision** : en-têtes via `next.config.ts` : HSTS, `X-Frame-Options: DENY`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options`,
+  `Permissions-Policy` restrictive, CSP `default-src 'self'` avec `'unsafe-inline'` pour
+  `script-src`/`style-src` (nécessaire au runtime Next.js sans nonce) et `img-src 'self' data:
+  blob: https:` (logos hébergés). `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`.
+- **Conséquence** : passage à une CSP par nonce noté en Phase 2.
+
+## D-13 — Pagination et recherche des inscrits côté serveur
+- **Décision** : paramètres d'URL (`?q=&statut=&secteur=&region=&source=&tri=&page=`) lus dans un
+  Server Component; recherche `ILIKE` sur nom, entreprise, courriel; 25 lignes par page.
+- **Raison** : simple, partageable par lien, pas d'état client à synchroniser.
+
+## D-14 — Revalidation de session côté serveur plutôt que dans le callback JWT
+- **Décision** : `requireOrganizer()` (pages) et `requireOrganizerAction()` (actions) relisent
+  l'organisateur en base à chaque requête (mise en cache par requête avec `React.cache`) et
+  vérifient `isActive`, `sessionVersion` et l'appartenance à l'organisation. Le middleware ne
+  vérifie que la présence d'un JWT valide pour le routage.
+- **Raison** : une lecture par clé primaire est négligeable; la déconnexion partout et la
+  désactivation d'un compte sont effectives immédiatement, sans dépendre des subtilités du
+  callback `jwt` d'Auth.js (retour `null`, fenêtre de 5 minutes).
+
+## D-15 — Liens magiques et réinitialisation consommés en POST
+- **Décision** : la page `/admin/connexion?token=…` (et `/admin/reinitialiser`) n'invalide pas le
+  jeton au chargement : elle affiche un bouton dont l'envoi (server action) consomme le jeton.
+- **Raison** : règle « aucun GET ne modifie l'état » (section 9) et protection contre les
+  antivirus/scanners de courriel qui ouvrent les liens et « brûleraient » les jetons.
+
+## D-16 — Composants shadcn/ui « base-nova » (Base UI) et champs natifs sur mobile
+- **Contexte** : la CLI shadcn installe désormais des composants bâtis sur Base UI (`@base-ui/react`)
+  plutôt que Radix.
+- **Décision** : conserver ces composants pour l'admin (dialogues, panneaux, menus) mais utiliser des
+  `<select>` et `<input type="checkbox">` natifs (composants `NativeSelect`, `ConsentBox`) dans les
+  formulaires publics et participant.
+- **Raison** : sélecteurs système sur mobile, soumission en `FormData` sans état client, meilleure
+  accessibilité par défaut, cibles tactiles ≥ 44 px.
+
+## D-17 — Formulaire d'inscription en une seule page, étapes masquées
+- **Décision** : les trois étapes vivent dans un seul `<form>`; les étapes non courantes sont
+  `hidden` (les champs restent soumis). Validation Zod par étape côté client (mêmes schémas que le
+  serveur), puis validation complète côté serveur; le serveur renvoie l'étape à afficher en cas
+  d'erreur.
+- **Raison** : sauvegarde locale en mémoire seulement (exigence 6.2), un seul envoi réseau, aucune
+  donnée personnelle dans l'URL.
+
+## D-18 — Police Inter : sous-ensemble latin uniquement
+- **Décision** : `next/font/local` avec le seul fichier `inter-latin-wght-normal.woff2` (police
+  variable, ≈ 45 ko). Les caractères latin-ext (œ, Œ) tombent sur la police système.
+- **Raison** : `next/font/local` ne permet pas de `unicode-range` par fichier; deux fichiers avec
+  les mêmes descripteurs s'écraseraient. Compromis jugé acceptable (fréquence de « œ » très faible).
+
+## D-19 — Vulnérabilités transitives : surcharges pnpm
+- **Décision** : `pnpm.overrides` force `postcss ≥ 8.5.18` (dépendance interne de Next.js) et
+  `deepmerge-ts ≥ 8` (CLI Prisma) afin que `pnpm audit --audit-level=high` passe en CI;
+  `nodemailer` 9 est autorisé malgré la plage de pairs d'Auth.js (provider Email non utilisé).
+- **Conséquence** : à réévaluer à chaque mise à niveau de Next.js/Prisma.

@@ -1,0 +1,16 @@
+# IDEES_PHASE2.md — Idées hors portée (à ne pas construire en Phase 1)
+
+- Mise à niveau Next.js 16 (Turbopack build, `proxy.ts`) et Prisma 7 (générateur `prisma-client`, adaptateur `@prisma/adapter-pg`).
+- CSP stricte par nonce (middleware) au lieu de `'unsafe-inline'`.
+- Fusion de doublons de participants (même personne, deux courriels).
+- Liste d'attente quand la capacité est atteinte.
+- Vue matrice (heatmap secteur × secteur des scores moyens) dans l'onglet Matching, si non livrée en semaine 2.
+- Sélection d'organisation à la connexion quand un même courriel est organisateur dans plusieurs organisations (Phase 1 : première organisation active dont le mot de passe correspond).
+- Rétention automatique des données (purge après N mois d'inactivité), avec avis préalable.
+- Sous-domaines personnalisés par organisation et thèmes complets (marque blanche avancée).
+- Interface super-admin AD Création (liste des organisations, compteurs, activation).
+- Paiement des billets, billetterie, CRM, infolettre, comptabilité.
+- Messagerie entre participants; carte géographique; application native.
+- Génération de PDF vectoriel (`@react-pdf/renderer`) si la page HTML imprimable ne suffit pas.
+- Invitations « amenez un partenaire » : un participant recommande une entreprise complémentaire.
+- Sondage post-événement (« Avez-vous conclu une affaire ? ») pour mesurer la valeur des jumelages et ajuster la matrice d'affinité.

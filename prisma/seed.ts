@@ -9,6 +9,7 @@ import { defaultConsentText } from "../src/lib/defaults/consent-text";
 import { SECTOR_TAGS } from "../src/lib/defaults/sector-tags";
 import { DEFAULT_SECTORS, affinityFor } from "../src/lib/defaults/sectors";
 import { REGIONS } from "../src/lib/regions";
+import { runMatchingForEvent } from "../src/server/services/matching";
 
 const prisma = new PrismaClient();
 faker.seed(20261015);
@@ -336,7 +337,11 @@ async function main() {
     },
   });
 
-  // Matching and seating on the OPEN event are wired in weeks 2 and 3 (S2-14, S3-10).
+  // Matching on the OPEN event so the demo is alive from the first launch (seating: week 3).
+  const run = await runMatchingForEvent(openEvent.id, organization.id, { actorType: "system" });
+  console.log(
+    `Matching: ${run.summary.totalMatches} jumelages pour ${run.summary.eligible} inscrits (score moyen ${run.summary.averageScore}).`,
+  );
 
   console.log(`Done. Organization "demo" — organizer owner@demo.local / ${DEMO_PASSWORD}`);
   console.log(`Public page: /e/demo/${openEvent.slug}`);

@@ -146,3 +146,20 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   `deepmerge-ts ≥ 8` (CLI Prisma) afin que `pnpm audit --audit-level=high` passe en CI;
   `nodemailer` 9 est autorisé malgré la plage de pairs d'Auth.js (provider Email non utilisé).
 - **Conséquence** : à réévaluer à chaque mise à niveau de Next.js/Prisma.
+
+## D-20 — Boîte de courriels de test dans l'admin
+- **Contexte** : sans service d'envoi configuré, les liens personnels des participants n'arrivent
+  nulle part, ce qui empêche de tester le parcours complet sans lire les journaux du serveur.
+- **Décision** : le transport « console » conserve le corps texte du courriel dans
+  `EmailLog.previewText` (avec `organizationId` et `subject`), et l'admin affiche
+  `/admin/courriels` (« Courriels (test) ») tant que ce transport est actif. Dès qu'une clé Resend
+  ou un SMTP est configuré, rien n'est conservé et la page disparaît (404).
+- **Raison** : essais réalistes en local et sur un déploiement de démonstration, sans jamais stocker
+  de corps de courriel en production.
+
+## D-21 — `pnpm first-run` et `vercel-build`
+- **Décision** : `scripts/first-run.ts` génère `.env` (secrets aléatoires), applique les migrations
+  et charge la démo; `vercel-build` exécute `prisma migrate deploy`, charge la démo une seule fois
+  si `SEED_DEMO=true` et la base est vide, puis construit l'application.
+- **Raison** : mise en route en une commande pour les essais; à la semaine 4, `SEED_DEMO` est retiré
+  de la production et la démo supprimée.

@@ -48,3 +48,15 @@ test.describe("Organizer", () => {
     await expect(page.getByRole("dialog").getByLabel("Nom de l'entreprise")).toBeVisible();
   });
 });
+
+test.describe("Test mailbox (console transport)", () => {
+  test("lists emails with their links when no provider is configured", async ({ page }) => {
+    await page.goto("/admin/login");
+    await page.getByLabel("Courriel").first().fill(OWNER.email);
+    await page.getByLabel("Mot de passe").fill(OWNER.password);
+    await page.getByRole("button", { name: "Se connecter" }).click();
+    await expect(page).toHaveURL(/\/admin$/);
+    await page.goto("/admin/courriels");
+    await expect(page.getByRole("heading", { name: "Courriels (mode test)" })).toBeVisible();
+  });
+});

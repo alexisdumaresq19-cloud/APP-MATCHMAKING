@@ -18,6 +18,11 @@ react-email + Resend/SMTP, Zod, Vitest, Playwright, pino. Voir `DECISIONS.md` po
 - Node.js 22 (≥ 20.9) et pnpm 10 (`corepack enable`)
 - PostgreSQL 14+ (local, Docker, Supabase ou Neon)
 
+## Essayer rapidement
+
+Guide pas à pas (ordinateur ou Vercel + Neon) : [`docs/ESSAYER.md`](docs/ESSAYER.md). En résumé,
+après `pnpm install` : `pnpm first-run` puis `pnpm dev`.
+
 ## Installation locale
 
 ```bash
@@ -31,8 +36,9 @@ pnpm dev                      # http://localhost:3000
 Secrets : `openssl rand -base64 32` (un pour `AUTH_SECRET`, un autre pour `PARTICIPANT_TOKEN_SECRET`).
 
 Sans `RESEND_API_KEY` ni `SMTP_HOST`, les courriels ne sont pas envoyés : ils sont journalisés
-dans la console du serveur (transport « console ») avec les liens cliquables, et une ligne est
-écrite dans la table `EmailLog`.
+dans la console du serveur et consultables, liens cliquables inclus, dans l'admin sous
+« Courriels (test) » (`/admin/courriels`). Cette boîte disparaît dès qu'un service d'envoi est
+configuré; le corps des courriels n'est jamais conservé en production.
 
 ### Données de démonstration
 
@@ -56,6 +62,7 @@ Pour repartir de zéro : `pnpm db:reset && pnpm db:seed`.
 | `pnpm test` | Tests unitaires et d'intégration (Vitest; l'intégration utilise `.env.test`) |
 | `pnpm test:e2e` | Tests Playwright (démarre `pnpm dev` ou réutilise un serveur sur :3000) |
 | `pnpm db:migrate`, `pnpm db:deploy`, `pnpm db:reset`, `pnpm db:seed`, `pnpm db:studio` | Prisma |
+| `pnpm first-run [--database-url …]` | Crée `.env` (secrets générés), applique les migrations et charge la démo |
 | `pnpm create-org --slug x --name "…" --owner-email … --owner-name "…"` | Crée une organisation et son compte OWNER (mot de passe temporaire affiché) |
 | `pnpm billing:report --month AAAA-MM` | Rapport de facturation CSV (semaine 3) |
 

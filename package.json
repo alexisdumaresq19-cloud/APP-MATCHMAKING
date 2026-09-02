@@ -26,7 +26,9 @@
     "db:studio": "prisma studio",
     "create-org": "tsx --env-file-if-exists=.env scripts/create-org.ts",
     "billing:report": "tsx --env-file-if-exists=.env scripts/billing-report.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "first-run": "tsx scripts/first-run.ts",
+    "vercel-build": "prisma migrate deploy && prisma generate && tsx scripts/ensure-demo.ts && next build"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

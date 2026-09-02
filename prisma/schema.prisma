@@ -353,17 +353,21 @@ model ConsentLog {
 }
 
 model EmailLog {
-  id         String   @id @default(cuid())
-  eventId    String?
-  event      Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
-  toEmail    String
-  template   String // "registration_confirmed" | "matches_published" | "reminder" | "magic_link" | ...
-  providerId String?
-  status     String // "sent" | "failed"
-  error      String?
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  organizationId String? // ADDED: scoping for the organizer-facing test mailbox
+  eventId        String?
+  event          Event?   @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  toEmail        String
+  subject        String? // ADDED
+  template       String // "registration_confirmed" | "matches_published" | "reminder" | "magic_link" | ...
+  providerId     String?
+  status         String // "sent" | "failed"
+  error          String?
+  previewText    String?  @db.Text // ADDED: plain-text body, stored ONLY by the "console" transport (dev/test)
+  createdAt      DateTime @default(now())
 
   @@index([eventId, template])
+  @@index([organizationId, createdAt])
 }
 
 model AuditLog {

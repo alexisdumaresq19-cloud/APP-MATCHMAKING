@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { LogOutIcon } from "lucide-react";
 import type { Organization, Organizer } from "@prisma/client";
 import { PoweredBy } from "@/components/shared/powered-by";
+import { resolveTransportKind } from "@/lib/email/transport";
 import { AdminNav } from "./admin-nav";
 import { logout } from "@/server/actions/auth";
 
@@ -37,7 +38,7 @@ export function AdminShell({
             </button>
           </form>
         </div>
-        <AdminNav role={organizer.role} />
+        <AdminNav role={organizer.role} showMailbox={resolveTransportKind() === "console"} />
         <div className="mt-auto hidden space-y-3 border-t px-5 py-4 lg:block">
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{organizer.name}</p>

@@ -2,7 +2,7 @@ import type { ReactElement } from "react";
 import { render } from "@react-email/render";
 import { prisma } from "@/lib/db/prisma";
 import { logger } from "@/lib/logger";
-import { sendRawEmail } from "./transport";
+import { resolveTransportKind, sendRawEmail } from "./transport";
 
 export type EmailTemplateName =
   | "registration_confirmed"
@@ -17,6 +17,7 @@ export type EmailTemplateName =
   | "participant_link";
 
 export type EmailOrganization = {
+  id?: string;
   name: string;
   platformName: string;
   replyToEmail: string;
@@ -59,12 +60,16 @@ export async function sendEmail(input: SendEmailInput): Promise<boolean> {
   try {
     await prisma.emailLog.create({
       data: {
+        organizationId: input.organization.id ?? null,
         eventId: input.eventId ?? null,
         toEmail: input.to,
+        subject: input.subject,
         template: input.template,
         providerId: result.ok ? result.providerId : null,
         status: result.ok ? "sent" : "failed",
         error: result.ok ? null : result.error.slice(0, 1000),
+        // The body is kept only when nothing was actually sent, so testers can open the links.
+        previewText: resolveTransportKind() === "console" ? text : null,
       },
     });
   } catch (error) {

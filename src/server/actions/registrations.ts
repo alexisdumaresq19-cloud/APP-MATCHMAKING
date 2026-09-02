@@ -4,15 +4,25 @@ import { revalidatePath } from "next/cache";
 import type { RegistrationStatus } from "@prisma/client";
 import { audit } from "@/lib/audit";
 import { requireOrganizerAction } from "@/lib/auth/session";
-import { orgRegistration } from "@/lib/db/org-scope";
+import { orgEvent, orgRegistration } from "@/lib/db/org-scope";
 import { prisma } from "@/lib/db/prisma";
 import { isAppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
-import { fieldErrorsOf, formDataToObject, optionalText } from "@/lib/validation/common";
+import {
+  checkboxSchema,
+  emailSchema,
+  fieldErrorsOf,
+  formDataToObject,
+  optionalText,
+} from "@/lib/validation/common";
 import { registrationStatusChangeSchema } from "@/lib/validation/event";
 import { participantProfileSchema } from "@/lib/validation/registration";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
-import { sendConsentPending, sendParticipantLink } from "@/server/services/participant-emails";
+import {
+  sendConsentPending,
+  sendParticipantLink,
+  sendRegistrationConfirmed,
+} from "@/server/services/participant-emails";
 import { GENERIC_ERROR, type ActionState } from "./types";
 
 const adminProfileSchema = participantProfileSchema.extend({ notes: optionalText(2000) });
@@ -157,4 +167,138 @@ export async function resendParticipantLink(registrationId: string): Promise<Act
     return { ok: false, formError: GENERIC_ERROR };
   }
   return { ok: true, message: "Courriel envoyé." };
+}
+
+const manualRegistrantSchema = participantProfileSchema.extend({
+  email: emailSchema,
+  goalsText: optionalText(500),
+  notes: optionalText(2000),
+  sendEmail: checkboxSchema,
+});
+
+/** Organizer adds a registrant by hand (source MANUAL). Existing participants keep their profile. */
+export async function addRegistrantManually(
+  eventId: string,
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const { organizer, organization } = await requireOrganizerAction();
+  const parsed = manualRegistrantSchema.safeParse(
+    formDataToObject(formData, { arrays: ["offers", "needs"] }),
+  );
+  if (!parsed.success) {
+    return {
+      ok: false,
+      fieldErrors: fieldErrorsOf(parsed.error),
+      formError: "Veuillez corriger les champs indiqués.",
+    };
+  }
+  const data = parsed.data;
+  try {
+    const event = await orgEvent(organization.id, eventId);
+    const sector = await prisma.sector.findFirst({
+      where: { id: data.sectorId, organizationId: organization.id },
+    });
+    if (!sector) return { ok: false, fieldErrors: { sectorId: ["Choisissez un secteur."] } };
+
+    const existing = await prisma.participant.findUnique({
+      where: { organizationId_email: { organizationId: organization.id, email: data.email } },
+    });
+    let participant = existing && !existing.deletedAt ? existing : null;
+    let reusedProfile = false;
+    if (participant) {
+      reusedProfile = true;
+    } else {
+      participant = await prisma.participant.create({
+        data: {
+          organizationId: organization.id,
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          jobTitle: data.jobTitle,
+          companyName: data.companyName,
+          sectorId: sector.id,
+          region: data.region,
+          city: data.city,
+          website: data.website,
+          description: data.description,
+          offers: data.offers,
+          needs: data.needs,
+        },
+      });
+    }
+
+    const registration = await prisma.eventRegistration.findUnique({
+      where: { eventId_participantId: { eventId: event.id, participantId: participant.id } },
+    });
+    if (registration && registration.status !== "CANCELLED") {
+      return {
+        ok: false,
+        fieldErrors: { email: ["Cette personne est déjà inscrite à cet événement."] },
+      };
+    }
+    if (registration) {
+      await prisma.eventRegistration.update({
+        where: { id: registration.id },
+        data: {
+          status: "REGISTERED",
+          cancelledAt: null,
+          source: "MANUAL",
+          goalsText: data.goalsText,
+          notes: data.notes,
+        },
+      });
+    } else {
+      await prisma.eventRegistration.create({
+        data: {
+          eventId: event.id,
+          participantId: participant.id,
+          source: "MANUAL",
+          offersSnapshot: reusedProfile ? participant.offers : data.offers,
+          needsSnapshot: reusedProfile ? participant.needs : data.needs,
+          goalsText: data.goalsText,
+          notes: data.notes,
+        },
+      });
+    }
+    await audit({
+      organizationId: organization.id,
+      actorType: "organizer",
+      actorId: organizer.id,
+      action: "CREATE",
+      entity: "EventRegistration",
+      entityId: event.id,
+      metadata: { participantId: participant.id, source: "MANUAL", reusedProfile },
+    });
+    if (data.sendEmail) {
+      const consented = await hasCurrentConsent(
+        participant.id,
+        currentConsentVersion(organization),
+      );
+      if (consented) {
+        await sendRegistrationConfirmed({
+          organization,
+          event,
+          participant,
+          sectorName: sector.name,
+          offers: participant.offers,
+          needs: participant.needs,
+        });
+      } else {
+        await sendConsentPending({ organization, event, participant });
+      }
+    }
+    for (const path of eventPaths(event.id)) revalidatePath(path);
+    return {
+      ok: true,
+      message: reusedProfile
+        ? "Inscrit ajouté avec son profil existant."
+        : "Inscrit ajouté. Consentement en attente.",
+    };
+  } catch (error) {
+    if (isAppError(error)) return { ok: false, formError: error.message };
+    logger.error({ err: error }, "manual registrant failed");
+    return { ok: false, formError: GENERIC_ERROR };
+  }
 }

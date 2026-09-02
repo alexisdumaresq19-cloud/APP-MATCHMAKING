@@ -16,6 +16,10 @@ import {
   type RegistrantSummary,
 } from "@/components/admin/registrants/registrant-drawer";
 import { RegistrantsFilters } from "@/components/admin/registrants/registrants-filters";
+import { AddRegistrantSheet } from "@/components/admin/registrants/add-registrant-sheet";
+import { buttonVariants } from "@/components/ui/button";
+import { DownloadIcon, UploadIcon } from "lucide-react";
+import { getTagSuggestions } from "@/server/queries/tags";
 import { appBaseUrl } from "@/lib/auth/participant-session";
 import { requireOrganizer } from "@/lib/auth/session";
 import { formatDate } from "@/lib/dates";

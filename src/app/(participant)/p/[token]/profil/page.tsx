@@ -5,6 +5,7 @@ import { resolveParticipantAccess } from "@/lib/auth/participant-session";
 import { REGIONS } from "@/lib/regions";
 import { updateParticipantProfile } from "@/server/actions/participant";
 import { getActiveSectors } from "@/server/queries/public";
+import { getTagSuggestions } from "@/server/queries/tags";
 
 export const metadata: Metadata = { title: "Mon profil" };
 
@@ -17,7 +18,10 @@ export default async function ParticipantProfilePage({
   const context = await resolveParticipantAccess(token);
   if (!context) notFound();
   const { participant, organization } = context;
-  const sectors = await getActiveSectors(organization.id);
+  const [sectors, tagSuggestions] = await Promise.all([
+    getActiveSectors(organization.id),
+    getTagSuggestions(organization.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -46,6 +50,7 @@ export default async function ParticipantProfilePage({
         }}
         sectors={sectors}
         regions={REGIONS}
+        tagSuggestions={tagSuggestions}
       />
     </div>
   );

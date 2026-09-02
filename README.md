@@ -34,6 +34,9 @@ pnpm dev                      # http://localhost:3000
 ```
 
 Secrets : `openssl rand -base64 32` (un pour `AUTH_SECRET`, un autre pour `PARTICIPANT_TOKEN_SECRET`).
+S'ils sont absents, un secret de secours est dérivé de la chaîne de connexion à la base (pratique
+pour les essais; obligatoire de les définir explicitement en production, un avertissement est
+journalisé).
 
 Sans `RESEND_API_KEY` ni `SMTP_HOST`, les courriels ne sont pas envoyés : ils sont journalisés
 dans la console du serveur et consultables, liens cliquables inclus, dans l'admin sous

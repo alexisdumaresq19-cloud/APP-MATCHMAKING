@@ -16,8 +16,8 @@ if (!process.env.DATABASE_URL) {
 for (const name of ["AUTH_SECRET", "PARTICIPANT_TOKEN_SECRET"]) {
   const value = process.env[name] ?? "";
   if (value.trim().length < 32) {
-    problems.push(
-      `${name} manquante ou trop courte : « Settings » → « Environment Variables » → ajoutez ${name} avec une phrase au hasard d'au moins 32 caractères (cochez Production et Preview).`,
+    console.warn(
+      `Avertissement : ${name} n'est pas définie; un secret dérivé de la base de données sera utilisé. À définir avant la mise en production (Settings → Environment Variables).`,
     );
   }
 }

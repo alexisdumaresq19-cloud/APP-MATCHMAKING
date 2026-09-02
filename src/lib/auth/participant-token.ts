@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { addDays } from "@/lib/dates";
+import { resolveParticipantTokenSecret } from "./secrets";
 
 const ISSUER = "matchmaking-events";
 const AUDIENCE = "participant";
@@ -15,7 +16,7 @@ export type ParticipantTokenClaims = {
 };
 
 function secretKey(secret?: string): Uint8Array {
-  const value = secret ?? process.env.PARTICIPANT_TOKEN_SECRET;
+  const value = secret ?? resolveParticipantTokenSecret();
   if (!value || value.length < 32) {
     throw new Error("PARTICIPANT_TOKEN_SECRET manquant ou trop court (32 caractères minimum)");
   }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MailCheckIcon } from "lucide-react";
+import { resolveTransportKind } from "@/lib/email/transport";
 import { getPublicEvent } from "@/server/queries/public";
 
 export const metadata: Metadata = { title: "Merci" };
@@ -14,6 +15,7 @@ export default async function ThankYouPage({
   const { orgSlug, eventSlug } = await params;
   const event = await getPublicEvent(orgSlug, eventSlug);
   if (!event) notFound();
+  const testMode = resolveTransportKind() === "console";
 
   return (
     <div className="space-y-6 text-center">
@@ -32,6 +34,15 @@ export default async function ThankYouPage({
           nous, le courriel contient plutôt un lien pour vous inscrire en un clic avec ce profil.
         </p>
       </div>
+      {testMode ? (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-left text-base text-amber-900">
+          <p>
+            <strong>Mode test :</strong> aucun service de courriel n'est configuré, le courriel n'a
+            donc pas été envoyé. L'organisatrice le retrouvera, avec votre lien personnel, dans «
+            Courriels (test) » de son espace.
+          </p>
+        </div>
+      ) : null}
       <Link
         href={`/e/${orgSlug}/${eventSlug}`}
         className="inline-block text-brand underline underline-offset-4"

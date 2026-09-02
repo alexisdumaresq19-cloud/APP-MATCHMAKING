@@ -8,7 +8,13 @@ import { Field, FormAlert, fieldAria } from "@/components/shared/form-field";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { loginWithPassword, requestMagicLink } from "@/server/actions/auth";
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
+export function LoginForm({
+  callbackUrl,
+  magicLinkAvailable = true,
+}: {
+  callbackUrl?: string;
+  magicLinkAvailable?: boolean;
+}) {
   const [state, formAction] = useActionState(loginWithPassword, null);
   const [magicState, magicAction] = useActionState(requestMagicLink, null);
   const errors = state && !state.ok ? (state.fieldErrors ?? {}) : {};
@@ -53,38 +59,42 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         </p>
       </form>
 
-      <div className="flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground uppercase">ou</span>
-        <Separator className="flex-1" />
-      </div>
+      {magicLinkAvailable ? (
+        <>
+          <div className="flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground uppercase">ou</span>
+            <Separator className="flex-1" />
+          </div>
 
-      <form action={magicAction} noValidate className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Recevez un lien de connexion par courriel, sans mot de passe.
-        </p>
-        {magicState?.ok ? (
-          <FormAlert variant="success" message={magicState.message} />
-        ) : (
-          <>
-            <FormAlert message={magicState && !magicState.ok ? magicState.formError : null} />
-            <Field label="Courriel" htmlFor="magic-email" error={magicErrors.email}>
-              <Input
-                id="magic-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                className="h-11 text-base"
-                {...fieldAria("magic-email", magicErrors.email)}
-              />
-            </Field>
-            <SubmitButton variant="outline" size="lg" className="w-full" pendingLabel="Envoi…">
-              Recevoir un lien de connexion
-            </SubmitButton>
-          </>
-        )}
-      </form>
+          <form action={magicAction} noValidate className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Recevez un lien de connexion par courriel, sans mot de passe.
+            </p>
+            {magicState?.ok ? (
+              <FormAlert variant="success" message={magicState.message} />
+            ) : (
+              <>
+                <FormAlert message={magicState && !magicState.ok ? magicState.formError : null} />
+                <Field label="Courriel" htmlFor="magic-email" error={magicErrors.email}>
+                  <Input
+                    id="magic-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    className="h-11 text-base"
+                    {...fieldAria("magic-email", magicErrors.email)}
+                  />
+                </Field>
+                <SubmitButton variant="outline" size="lg" className="w-full" pendingLabel="Envoi…">
+                  Recevoir un lien de connexion
+                </SubmitButton>
+              </>
+            )}
+          </form>
+        </>
+      ) : null}
     </div>
   );
 }

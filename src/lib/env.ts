@@ -9,11 +9,12 @@ const schema = z.object({
   DATABASE_URL: z
     .string()
     .min(1, "DATABASE_URL est requis (ou POSTGRES_URL via une intégration d'hébergement)"),
-  AUTH_SECRET: z.string().min(16, "AUTH_SECRET doit contenir au moins 16 caractères"),
+  AUTH_SECRET: z.string().min(16, "AUTH_SECRET doit contenir au moins 16 caractères").optional(),
   AUTH_URL: z.url().optional(),
   PARTICIPANT_TOKEN_SECRET: z
     .string()
-    .min(32, "PARTICIPANT_TOKEN_SECRET doit contenir au moins 32 caractères"),
+    .min(32, "PARTICIPANT_TOKEN_SECRET doit contenir au moins 32 caractères")
+    .optional(),
   RESEND_API_KEY: z.string().optional(),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().default(587),

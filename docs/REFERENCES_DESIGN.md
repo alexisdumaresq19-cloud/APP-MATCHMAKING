@@ -102,3 +102,32 @@ dans le même fichier. Feuille de style : `src/styles/animated-icons.css`.
   `aria-hidden` sauf si un `title` leur est donné.
 - Composants prêts : `EmptyState` (icône + titre + explication + action) et `StatCard` (chiffre clé
   avec icône) dans `src/components/shared/`.
+
+## Composants beUI (mouvement)
+
+Source : [beui.dev](https://beui.dev/components/motion), registre shadcn `@beui` (skill `beui` installée
+dans `.agents/skills/beui`). Les composants sont **copiés dans le projet** (`src/components/motion/`,
+jetons de mouvement dans `src/lib/ease.ts`), pas importés d'un paquet : on les adapte librement
+(textes en français, couleurs de la marque). Dépendance : `motion` (ex-Framer Motion).
+
+Retenus et où ils vivent :
+
+- `animated-number` : compte à rebours des chiffres clés (`StatCard`).
+- `text-reveal` : titres « héros » seulement (Bonjour…, nom de l'événement, Merci!, accueil
+  participant). Un titre animé par écran.
+- `scroll-reveal` : apparition des blocs à l'arrivée dans l'écran (tableau de bord, page publique,
+  étapes de la page Merci).
+- `range-slider-bubble` : curseurs de pondération du matching (bulle qui suit le doigt).
+- `animated-badge` : statut de l'événement (pulsation quand les inscriptions sont ouvertes).
+- `not-found-stacked` : page 404 (« cette page n'est pas dans le jeu »).
+- Motifs repris à la main pour rester sur nos boutons et cases natives (formulaires, tests,
+  accessibilité) : `action-swap` (échange flouté du libellé des boutons : `ActionSwap`), `checkbox`
+  (coche dessinée : `CheckMark`), `tabs` et `shared-layout-bg` (soulignement et pastille qui
+  glissent : `layoutId` dans les onglets d'événement et le menu).
+
+Écartés pour la Phase 1 : `bottom-sheet` (réservé aux vues participant de la semaine 3),
+`swipeable-list` (check-in du Jour J), `command-palette`, `theme-toggle`, `smooth-scroll` (Lenis),
+composants d'agent/chat, tables virtualisées (nos listes sont paginées côté serveur).
+
+Règles : `useReducedMotion()` partout; on anime `transform` et `opacity`, jamais la mise en page;
+les effets de survol décoratifs passent par `useHoverCapable()`.

@@ -209,3 +209,15 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   à la fois la suggestion et le score; la formule de la section 7.2 reste inchangée pour les
   étiquettes libres. Le reste de la ligne directrice (annuaire Google Places, tri payant, messagerie,
   carnet d'adresses, billetterie) est hors Phase 1 et consigné dans IDEES_PHASE2.md.
+
+## D-27 — Mouvement : beUI copié dans le projet, boutons et cases natives conservés
+- **Contexte** : la cliente veut une interface « wow ». beUI fournit des composants animés (motion)
+  de qualité; mais remplacer nos boutons (shadcn base-nova) et nos cases à cocher natives par les
+  siens casserait l'uniformité visuelle, les formulaires en actions serveur et les tests.
+- **Décision** : on copie les composants beUI utiles dans `src/components/motion/` (registre
+  shadcn, code sous notre contrôle) et on reprend seulement le *motif* de mouvement là où le
+  composant beUI imposerait sa propre structure : échange de libellé des boutons (`ActionSwap`),
+  coche dessinée par-dessus une case native (`CheckMark`), indicateurs qui glissent (`layoutId`).
+  Toute animation respecte `prefers-reduced-motion` et n'anime que `transform`/`opacity`.
+- **Raison** : un seul langage visuel, formulaires inchangés (FormData, validation, Playwright),
+  et des sources modifiables (textes français, marque) sans dépendre d'un paquet tiers.

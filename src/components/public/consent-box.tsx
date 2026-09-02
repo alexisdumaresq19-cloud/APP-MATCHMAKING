@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircleIcon } from "lucide-react";
+import { CheckMark } from "@/components/shared/check-mark";
 import { paragraphs } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
@@ -37,16 +38,22 @@ export function ConsentBox({ consentText, checked, onChange, error, name = "cons
           message ? "border-destructive" : "border-border",
         )}
       >
-        <input
-          id={name}
-          name={name}
-          type="checkbox"
-          checked={checked}
-          onChange={(event) => onChange(event.target.checked)}
-          className="mt-0.5 size-6 shrink-0 accent-[var(--brand-primary)]"
-          aria-invalid={message ? true : undefined}
-          aria-describedby={message ? `${name}-error` : undefined}
-        />
+        <span className="relative mt-0.5 size-6 shrink-0">
+          <input
+            id={name}
+            name={name}
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => onChange(event.target.checked)}
+            className="peer size-6 cursor-pointer appearance-none rounded-md outline-none"
+            aria-invalid={message ? true : undefined}
+            aria-describedby={message ? `${name}-error` : undefined}
+          />
+          <CheckMark
+            checked={checked}
+            className="peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
+          />
+        </span>
         <span>
           J'ai lu cet avis et je consens à la collecte et à l'utilisation de mes renseignements aux
           fins décrites ci-dessus.

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimatedIcon, type AnimatedIconName } from "@/components/ui/animated-icon";
+import { AnimatedNumber } from "@/components/motion/animated-number";
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,7 +37,7 @@ export function StatCard({
               figure ? "text-3xl" : "text-xl",
             )}
           >
-            {value}
+            {typeof value === "number" ? <AnimatedNumber value={value} locale="fr-CA" /> : value}
           </CardTitle>
         </div>
         <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand/10">

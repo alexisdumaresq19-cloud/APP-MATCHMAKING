@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { CheckMark } from "@/components/shared/check-mark";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -111,15 +112,21 @@ export function SectorChecklist({
                   invalid && "border-destructive/60",
                 )}
               >
-                <input
-                  id={inputId}
-                  type="checkbox"
-                  name={name}
-                  value={sector.id}
-                  checked={checked}
-                  onChange={(event) => toggle(sector.id, event.target.checked)}
-                  className="size-5 shrink-0 accent-[var(--brand-primary)]"
-                />
+                <span className="relative size-5 shrink-0">
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    name={name}
+                    value={sector.id}
+                    checked={checked}
+                    onChange={(event) => toggle(sector.id, event.target.checked)}
+                    className="peer size-5 cursor-pointer appearance-none rounded-md outline-none"
+                  />
+                  <CheckMark
+                    checked={checked}
+                    className="peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50"
+                  />
+                </span>
                 <span className="flex-1">{sector.name}</span>
                 {isSuggested ? (
                   <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand">

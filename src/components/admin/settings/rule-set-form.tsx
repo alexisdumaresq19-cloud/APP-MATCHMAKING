@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { BubbleSlider } from "@/components/motion/range-slider-bubble";
 import { FormAlert } from "@/components/shared/form-field";
 import { SubmitButton } from "@/components/shared/submit-button";
 import type { ActionState } from "@/server/actions/types";
@@ -69,27 +70,20 @@ export function RuleSetForm({
       {FIELDS.map((field) => (
         <div key={field.name} className="space-y-1">
           <div className="flex items-center justify-between gap-3">
-            <label htmlFor={field.name} className="text-base font-medium">
-              {field.label}
-            </label>
-            <output
-              className="w-12 rounded bg-muted px-2 py-0.5 text-center text-sm font-semibold tabular-nums"
-              htmlFor={field.name}
-            >
+            <span className="text-base font-medium">{field.label}</span>
+            <output className="w-12 rounded bg-muted px-2 py-0.5 text-center text-sm font-semibold tabular-nums">
               {values[field.name]}
             </output>
           </div>
-          <input
-            id={field.name}
-            name={field.name}
-            type="range"
+          <input type="hidden" name={field.name} value={values[field.name]} />
+          <BubbleSlider
+            aria-label={field.label}
             min={0}
             max={100}
             step={5}
             value={values[field.name]}
-            onChange={(e) => setValues((v) => ({ ...v, [field.name]: Number(e.target.value) }))}
-            className="h-2 w-full cursor-pointer accent-primary"
-            aria-describedby={`${field.name}-help`}
+            onValueChange={(value) => setValues((v) => ({ ...v, [field.name]: value }))}
+            className="-mx-5 h-14 pb-3"
           />
           <p id={`${field.name}-help`} className="text-sm text-muted-foreground">
             {field.help}

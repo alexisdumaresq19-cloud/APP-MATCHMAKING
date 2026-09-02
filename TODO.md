@@ -41,6 +41,7 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [ ] S2-15 (reporté en S3) Envoi groupé des demandes de consentement après un import (file d'envoi)
 - [ ] S2-16 (optionnel) Vue matrice secteur × secteur des scores moyens
 - [x] S2-17 « Avec qui aimeriez-vous collaborer? » : secteurs recherchés pré-cochés depuis la matrice d'affinité (inscription, profil, fiche admin, ajout manuel, import/export, moteur, courriel, seed, tests) — D-26
+- [x] S2-19 Composants beUI (motion) : chiffres animés, titres révélés, apparitions au défilement, curseurs à bulle, badge de statut, 404, échange de libellé, coche dessinée, onglets et menu qui glissent — D-27
 - [x] S2-18 Icônes animées (`@animated-color-icons/lucide-react`, wrapper `AnimatedIcon`) prêtes pour la passe « wow »
 
 ## Semaine 3 — Tables, publication, jour J

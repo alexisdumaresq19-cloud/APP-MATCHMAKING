@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
+import { SPRING_LAYOUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -15,6 +17,7 @@ const TABS = [
 
 export function EventTabs({ eventId }: { eventId: string }) {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   return (
     <nav
       aria-label="Sections de l'événement"
@@ -30,13 +33,20 @@ export function EventTabs({ eventId }: { eventId: string }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center border-b-2 px-3 text-sm font-medium transition-colors",
-                  active
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
+                  "relative flex min-h-11 items-center px-3 text-sm font-medium transition-colors",
+                  active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab.label}
+                {active ? (
+                  // The underline glides from the previous tab to the new one (shared layout).
+                  <motion.span
+                    layoutId="event-tab-indicator"
+                    transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                    className="absolute inset-x-1 -bottom-px h-0.5 rounded-full bg-primary"
+                    aria-hidden="true"
+                  />
+                ) : null}
               </Link>
             </li>
           );

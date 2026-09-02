@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDaysIcon, ChevronRightIcon, MapPinIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { TextReveal } from "@/components/motion/text-reveal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormAlert } from "@/components/shared/form-field";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
@@ -33,9 +34,11 @@ export default async function ParticipantHomePage({
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Bonjour {participant.firstName}
-        </h1>
+        <TextReveal
+          as="h1"
+          text={`Bonjour ${participant.firstName}`}
+          className="text-2xl font-bold tracking-tight sm:text-3xl"
+        />
         <p className="mt-1 text-base text-muted-foreground">
           {participant.companyName}
           {participant.sector ? ` · ${participant.sector.name}` : ""}

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatCard } from "@/components/shared/stat-card";
 import { PageHeader } from "@/components/admin/page-header";
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
     <>
       <PageHeader
         title={`Bonjour ${organizer.name.split(" ")[0]}`}
+        animateTitle
         description="Voici l'état de vos événements."
         actions={
           <Link href="/admin/events/new" className={buttonVariants({ size: "lg" })}>
@@ -112,80 +114,87 @@ export default async function DashboardPage() {
       </div>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>À faire</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {tasks.length === 0 ? (
-              <EmptyState
-                icon="circle-check"
-                size="sm"
-                title="Tout est à jour!"
-                description="Rien à signaler pour l'instant."
-              />
-            ) : (
-              <ul className="space-y-2">
-                {tasks.map((task) => (
-                  <li key={task.label}>
+        <ScrollReveal delay={0.1} amount={0.1}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>À faire</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {tasks.length === 0 ? (
+                <EmptyState
+                  icon="circle-check"
+                  size="sm"
+                  title="Tout est à jour!"
+                  description="Rien à signaler pour l'instant."
+                />
+              ) : (
+                <ul className="space-y-2">
+                  {tasks.map((task) => (
+                    <li key={task.label}>
+                      <Link
+                        href={task.href}
+                        className="flex min-h-10 items-center justify-between gap-3 rounded-lg border px-3 text-base hover:bg-muted"
+                      >
+                        <span>{task.label}</span>
+                        <ArrowRightIcon
+                          className="size-4 shrink-0 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </ScrollReveal>
+        <ScrollReveal delay={0.2} amount={0.1}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Événements à venir</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {events.length === 0 ? (
+                <EmptyState
+                  icon="calendar-plus"
+                  size="sm"
+                  title="Aucun événement à venir"
+                  description="Créez votre prochain événement pour ouvrir les inscriptions."
+                  action={
                     <Link
-                      href={task.href}
-                      className="flex min-h-10 items-center justify-between gap-3 rounded-lg border px-3 text-base hover:bg-muted"
+                      href="/admin/events/new"
+                      className={buttonVariants({ variant: "outline" })}
                     >
-                      <span>{task.label}</span>
-                      <ArrowRightIcon
-                        className="size-4 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
+                      Créer un événement
                     </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Événements à venir</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <EmptyState
-                icon="calendar-plus"
-                size="sm"
-                title="Aucun événement à venir"
-                description="Créez votre prochain événement pour ouvrir les inscriptions."
-                action={
-                  <Link href="/admin/events/new" className={buttonVariants({ variant: "outline" })}>
-                    Créer un événement
-                  </Link>
-                }
-              />
-            ) : (
-              <ul className="divide-y">
-                {events.slice(0, 6).map((event) => (
-                  <li key={event.id}>
-                    <Link
-                      href={`/admin/events/${event.id}/details`}
-                      className="flex min-h-12 items-center justify-between gap-3 py-2 hover:underline"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate font-medium">{event.name}</span>
-                        <span className="block text-sm text-muted-foreground">
-                          {formatDateRange(event.startsAt, event.endsAt, organization.timezone)}
+                  }
+                />
+              ) : (
+                <ul className="divide-y">
+                  {events.slice(0, 6).map((event) => (
+                    <li key={event.id}>
+                      <Link
+                        href={`/admin/events/${event.id}/details`}
+                        className="flex min-h-12 items-center justify-between gap-3 py-2 hover:underline"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">{event.name}</span>
+                          <span className="block text-sm text-muted-foreground">
+                            {formatDateRange(event.startsAt, event.endsAt, organization.timezone)}
+                          </span>
                         </span>
-                      </span>
-                      <Badge variant="secondary">
-                        {event._count.registrations} inscrit
-                        {event._count.registrations > 1 ? "s" : ""}
-                      </Badge>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+                        <Badge variant="secondary">
+                          {event._count.registrations} inscrit
+                          {event._count.registrations > 1 ? "s" : ""}
+                        </Badge>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </ScrollReveal>
       </section>
     </>
   );

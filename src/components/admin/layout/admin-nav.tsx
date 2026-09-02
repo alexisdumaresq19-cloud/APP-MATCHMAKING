@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import type { OrganizerRole } from "@prisma/client";
 import { AnimatedIcon, type AnimatedIconName } from "@/components/ui/animated-icon";
+import { SPRING_LAYOUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
 const ITEMS: { href: string; label: string; icon: AnimatedIconName; exact: boolean }[] = [
@@ -21,6 +23,7 @@ export function AdminNav({
   showMailbox: boolean;
 }) {
   const pathname = usePathname();
+  const reduce = useReducedMotion();
   const items = showMailbox
     ? [
         ...ITEMS,
@@ -43,12 +46,21 @@ export function AdminNav({
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "al-group flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
+                  "al-group relative isolate flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors",
                   active
-                    ? "bg-primary text-primary-foreground"
+                    ? "text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
+                {active ? (
+                  // The active pill glides between destinations (shared layout).
+                  <motion.span
+                    layoutId="admin-nav-pill"
+                    transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+                    className="absolute inset-0 -z-10 rounded-lg bg-primary"
+                    aria-hidden="true"
+                  />
+                ) : null}
                 <AnimatedIcon
                   name={item.icon}
                   size={18}

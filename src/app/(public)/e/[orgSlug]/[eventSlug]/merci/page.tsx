@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { TextReveal } from "@/components/motion/text-reveal";
 import { resolveTransportKind } from "@/lib/email/transport";
 import { getPublicEvent } from "@/server/queries/public";
 
@@ -22,7 +24,12 @@ export default async function ThankYouPage({
       <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-brand/10">
         <AnimatedIcon name="party-popper" size={40} play />
       </div>
-      <h1 className="text-3xl font-bold tracking-tight">Merci!</h1>
+      <TextReveal
+        as="h1"
+        text="Merci!"
+        split="char"
+        className="text-3xl font-bold tracking-tight"
+      />
       <p className="text-lg">
         Nous venons de vous envoyer un courriel pour <strong>{event.name}</strong>. Il contient
         votre lien personnel : conservez-le, c'est par là que vous consulterez votre profil, vos
@@ -49,15 +56,14 @@ export default async function ThankYouPage({
           { icon: "handshake", text: "Vos jumelages vous seront envoyés avant l'événement." },
           { icon: "armchair", text: "Le jour J, votre table vous attend : tout est indiqué." },
         ].map((step, index) => (
-          <li
-            key={step.icon}
-            className="al-group flex items-start gap-3 rounded-lg border bg-card p-3 text-sm sm:flex-col sm:items-center sm:text-center"
-          >
-            <AnimatedIcon name={step.icon as "mail-check" | "handshake" | "armchair"} size={26} />
-            <span>
-              <span className="font-semibold">{index + 1}.</span> {step.text}
-            </span>
-          </li>
+          <ScrollReveal key={step.icon} delay={0.15 * index} amount={0.1} className="h-full">
+            <li className="al-group flex h-full items-start gap-3 rounded-lg border bg-card p-3 text-sm sm:flex-col sm:items-center sm:text-center">
+              <AnimatedIcon name={step.icon as "mail-check" | "handshake" | "armchair"} size={26} />
+              <span>
+                <span className="font-semibold">{index + 1}.</span> {step.text}
+              </span>
+            </li>
+          </ScrollReveal>
         ))}
       </ol>
       <Link

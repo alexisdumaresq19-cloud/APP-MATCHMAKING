@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
+import { ScrollReveal } from "@/components/motion/scroll-reveal";
+import { TextReveal } from "@/components/motion/text-reveal";
 import { RegistrationForm } from "@/components/public/registration-form";
 import { FormAlert } from "@/components/shared/form-field";
 import { formatDate, formatDateRange } from "@/lib/dates";
@@ -71,7 +73,11 @@ export default async function PublicEventPage({ params }: { params: Params }) {
   return (
     <div className="space-y-8">
       <section className="space-y-4">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{event.name}</h1>
+        <TextReveal
+          as="h1"
+          text={event.name}
+          className="text-3xl font-bold tracking-tight sm:text-4xl"
+        />
         <dl className="space-y-3 text-base">
           <div className="flex items-start gap-3">
             <AnimatedIcon name="calendar-days" size={22} play className="mt-0.5" />
@@ -132,13 +138,13 @@ export default async function PublicEventPage({ params }: { params: Params }) {
       <section id="inscription" className="scroll-mt-6 space-y-4">
         {availability.open ? (
           <>
-            <div>
+            <ScrollReveal amount={0.2}>
               <h2 className="text-2xl font-bold tracking-tight">S'inscrire</h2>
               <p className="mt-1 text-muted-foreground">
                 Trois courtes étapes. Vos réponses servent à vous jumeler avec des entreprises
                 complémentaires à la vôtre.
               </p>
-            </div>
+            </ScrollReveal>
             <RegistrationForm
               action={registerToEvent.bind(null, orgSlug, eventSlug)}
               sectors={sectors}

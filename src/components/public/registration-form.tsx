@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { EASE_OUT } from "@/lib/ease";
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +86,16 @@ export function RegistrationForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [startedAt, setStartedAt] = useState(0);
   const topRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  // Each step slides in when it becomes the current one (fieldsets stay mounted for the form data).
+  const stepMotion = (index: number) => ({
+    initial: false as const,
+    animate:
+      step === index
+        ? { opacity: 1, x: 0, filter: "blur(0px)" }
+        : { opacity: 0, x: reduce ? 0 : 24, filter: reduce ? "blur(0px)" : "blur(6px)" },
+    transition: { duration: reduce ? 0 : 0.45, ease: EASE_OUT },
+  });
 
   useEffect(() => {
     setStartedAt(Date.now());
@@ -183,8 +195,9 @@ export function RegistrationForm({
       <input type="hidden" name="formStartedAt" value={startedAt} />
 
       {/* Step 1 — Vous */}
-      <fieldset hidden={step !== 0} className="space-y-5">
+      <fieldset hidden={step !== 0}>
         <legend className="sr-only">Vos coordonnées</legend>
+        <motion.div {...stepMotion(0)} className="space-y-5">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Prénom" htmlFor="firstName" required error={errors.firstName}>
             <Input
@@ -260,11 +273,13 @@ export function RegistrationForm({
             <ArrowRightIcon aria-hidden="true" />
           </Button>
         </div>
+        </motion.div>
       </fieldset>
 
       {/* Step 2 — Votre entreprise */}
-      <fieldset hidden={step !== 1} className="space-y-5">
+      <fieldset hidden={step !== 1}>
         <legend className="sr-only">Votre entreprise</legend>
+        <motion.div {...stepMotion(1)} className="space-y-5">
         <Field label="Nom de l'entreprise" htmlFor="companyName" required error={errors.companyName}>
           <Input
             id="companyName"
@@ -363,11 +378,13 @@ export function RegistrationForm({
             <ArrowRightIcon aria-hidden="true" />
           </Button>
         </div>
+        </motion.div>
       </fieldset>
 
       {/* Step 3 — Votre jumelage */}
-      <fieldset hidden={step !== 2} className="space-y-5">
+      <fieldset hidden={step !== 2}>
         <legend className="sr-only">Votre jumelage</legend>
+        <motion.div {...stepMotion(2)} className="space-y-5">
         <Field
           label="Ce que vous offrez"
           htmlFor="offers"
@@ -472,6 +489,7 @@ export function RegistrationForm({
             Confirmer mon inscription
           </SubmitButton>
         </div>
+        </motion.div>
       </fieldset>
     </form>
   );

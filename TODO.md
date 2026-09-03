@@ -76,7 +76,7 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 
 ## Phase 2 (voir PLAN_PHASE2.md)
 - [x] P2-S1 Présence des entreprises : « Mon accès » par courriel, annuaire public opt-in avec fiche, navigation publique, export CSV admin (D-36)
-- [ ] P2-S2 Contacts et messagerie
+- [x] P2-S2 Contacts et messagerie : « Message » et « Ajouter à mes contacts » sur les jumelages et l'annuaire, fils privés, notification, fermeture, carnet avec notes et export (D-37)
 - [ ] P2-S3 Sondage post-événement, apprentissage, purge, Lighthouse CI, TOTP
 - [ ] P2-S4 Stripe (mise en avant, billets), import Google Places — attend compte Stripe, clé Google et tarif
 

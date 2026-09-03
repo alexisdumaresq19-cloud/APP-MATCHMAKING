@@ -333,3 +333,18 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
 - **Raison** : rendre visible ce que l'entreprise choisit de rendre visible, rien de plus (Loi 25),
   sans ajouter de comptes à administrer; la messagerie (P2-S2) s'appuiera sur le même opt-in pour
   décider qui peut écrire à qui.
+
+## D-37 — Phase 2, jalon 2 : messagerie interne et carnet de contacts
+- **Contexte** : la ligne directrice veut, après un jumelage, deux actions : « Ajouter au carnet
+  d'adresses » et « Envoyer un message », et un bouton « Message » sur les entreprises inscrites.
+- **Décision** : messagerie privée entre deux entreprises de la même organisation (`Conversation`
+  unique par paire, `Message`), sans jamais transmettre courriel ni téléphone. Peuvent s'écrire :
+  les entreprises jumelées ensemble à un événement, ou deux entreprises qui figurent toutes deux
+  dans l'annuaire public (D-36). Limite de 30 messages par heure par expéditeur; notification par
+  courriel au plus une fois par heure par fil; chacun peut fermer une conversation (seule la
+  personne qui l'a fermée peut la rouvrir). Les messages sont réservés aux deux parties : aucun
+  écran d'administration ne les affiche (finalité limitée, Loi 25); l'anonymisation d'un profil
+  les rend orphelins du côté anonymisé. Le carnet (`Contact`) est un signet privé avec note et
+  événement de rencontre, exportable en CSV; il obéit à la même règle d'introduction.
+- **Raison** : livrer les deux actions demandées sans ouvrir un canal de sollicitation : il faut
+  avoir été présenté (jumelage) ou s'être rendu visible soi-même pour écrire.

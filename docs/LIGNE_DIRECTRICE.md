@@ -20,7 +20,7 @@ Légende : ✅ livré · 🟡 livré autrement (même résultat, mécanisme diff
 | --- | --- | --- |
 | Entreprises de la région importées de Google (sans inscription) | ⏭️ | Import Google Places : coût par requête, conditions d'utilisation de Google et géolocalisation à concevoir. Phase 2. |
 | Tri payant `is_premium` puis distance | ⏭️ | Dépend de l'annuaire public et d'un paiement. Phase 2. |
-| Bouton « Message direct » si l'entreprise est inscrite | ⏭️ | Messagerie entre entreprises : Phase 2 (consentement à partager les coordonnées à prévoir, voir `docs/LOI25.md`). |
+| Bouton « Message direct » si l'entreprise est inscrite | ✅ (P2-S2) | « Message » sur les jumelages, dans l'annuaire de l'espace participant et sur les contacts; messagerie interne sans échange de coordonnées (D-37). |
 | Profils : nom, logo, adresse, secteur, mots-clés, description | 🟡 | Profil participant : nom, entreprise, poste, secteur, ville, région, site web, offres, besoins, secteurs recherchés, description (300 caractères), fiche publique opt-in (P2-S1). Pas de logo par entreprise ni de latitude/longitude (région administrative à la place; géolocalisation au jalon P2-S4). |
 | Annuaire consultable | ✅ (Phase 2, P2-S1) | Annuaire public `/<organisation>/entreprises` des entreprises inscrites qui ont activé leur fiche (opt-in), avec recherche par mot-clé, secteur et région, et fiche publique sans coordonnées personnelles. Les entreprises non inscrites (import Google Places) restent au jalon P2-S4. |
 
@@ -34,8 +34,8 @@ Légende : ✅ livré · 🟡 livré autrement (même résultat, mécanisme diff
 | Inscription en deux étapes : « Qui êtes-vous? » puis « Avec qui voulez-vous collaborer? » avec liste pré-cochée et message « Nous avons pré-sélectionné… souhaitez-vous ajouter d'autres secteurs? » | ✅ | Même parcours; le message nomme les secteurs pré-cochés : « Nous avons pré-coché pour vous : … Souhaitez-vous ajouter d'autres secteurs? ». Les autres secteurs se déplient en un clic. |
 | Validation du match « si le secteur de B est dans la liste de A ET/OU si le secteur de A est dans la liste de B » | ✅ | Règle appliquée telle quelle dans le score : les deux sens = 100, un sens = 70; les étiquettes ne peuvent pas faire baisser ce résultat (D-34, `src/lib/matching/score.ts`, test unitaire). Les raisons affichées le disent en français : « Vous souhaitiez rencontrer le secteur « … » » / « Ils cherchaient justement des entreprises de votre secteur. » |
 | L'algorithme tourne « chaque fois qu'une entreprise se connecte » | 🟡 | Le jumelage se calcule par événement, à la demande de l'organisatrice (bouton « Calculer les jumelages »), pour rester déterministe, révisable (épingler/exclure) et publié une seule fois. |
-| Actions post-match : « Ajouter au carnet d'adresses » | ⏭️ | Phase 2 : suppose de partager les coordonnées entre participants (consentement à prévoir). En Phase 1, les partenaires, leurs entreprises et les raisons sont dans l'espace participant et le courriel de jumelages. |
-| Actions post-match : « Envoyer un message » | ⏭️ | Messagerie : Phase 2. |
+| Actions post-match : « Ajouter au carnet d'adresses » | ✅ (P2-S2) | « Ajouter à mes contacts » sur chaque jumelage et chaque entreprise de l'annuaire; page « Mes contacts » avec notes et export CSV. |
+| Actions post-match : « Envoyer un message » | ✅ (P2-S2) | Fil privé par paire d'entreprises, notification par courriel, fermeture en un clic. |
 | Évolution : filtrage collaboratif (« 80 % des garderies acceptent… ») | ⏭️ | Phase 2; nécessite un historique d'acceptations. La matrice se règle déjà à la main d'après ce que vous observez. |
 
 ## Section 3 — Événements en présentiel

@@ -46,6 +46,9 @@ export type PersonalDataBundle = {
   }[];
   consents: { acceptedAt: string; version: string; text: string }[];
   deletionRequests: { requestedAt: string; status: string; resolvedAt: string | null }[];
+  /** Phase 2: the private address book and every message the person wrote or received. */
+  contacts: { company: string; event: string | null; note: string | null; addedAt: string }[];
+  messages: { with: string; sentAt: string; mine: boolean; body: string }[];
 };
 
 export async function buildPersonalDataBundle(participantId: string): Promise<PersonalDataBundle> {
@@ -67,6 +70,29 @@ export async function buildPersonalDataBundle(participantId: string): Promise<Pe
       },
     },
   });
+  const [contacts, conversations] = await Promise.all([
+    prisma.contact.findMany({
+      where: { ownerId: participantId },
+      include: { contact: { select: { companyName: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.conversation.findMany({
+      where: { OR: [{ participantAId: participantId }, { participantBId: participantId }] },
+      include: {
+        participantA: { select: { id: true, companyName: true } },
+        participantB: { select: { id: true, companyName: true } },
+        messages: { orderBy: { createdAt: "asc" } },
+      },
+    }),
+  ]);
+  const contactEventIds = contacts.map((c) => c.eventId).filter((id): id is string => !!id);
+  const contactEvents = contactEventIds.length
+    ? await prisma.event.findMany({
+        where: { id: { in: contactEventIds } },
+        select: { id: true, name: true },
+      })
+    : [];
+  const contactEventName = new Map(contactEvents.map((e) => [e.id, e.name]));
   const sectorNames = new Map(
     (
       await prisma.sector.findMany({
@@ -138,6 +164,24 @@ export async function buildPersonalDataBundle(participantId: string): Promise<Pe
       status: d.status,
       resolvedAt: d.resolvedAt?.toISOString() ?? null,
     })),
+    contacts: contacts.map((c) => ({
+      company: c.contact.companyName,
+      event: c.eventId ? (contactEventName.get(c.eventId) ?? null) : null,
+      note: c.note,
+      addedAt: c.createdAt.toISOString(),
+    })),
+    messages: conversations.flatMap((conversation) => {
+      const other =
+        conversation.participantAId === participantId
+          ? conversation.participantB
+          : conversation.participantA;
+      return conversation.messages.map((m) => ({
+        with: other.companyName,
+        sentAt: m.createdAt.toISOString(),
+        mine: m.senderId === participantId,
+        body: m.body,
+      }));
+    }),
   };
 }
 
@@ -176,6 +220,18 @@ export function bundleToCsvRows(bundle: PersonalDataBundle): (string | number | 
   for (const consent of bundle.consents) push("Consentement", consent.acceptedAt, consent.version);
   for (const request of bundle.deletionRequests)
     push("Demande de suppression", request.requestedAt, request.status);
+  for (const contact of bundle.contacts)
+    push(
+      "Contact",
+      contact.company,
+      [contact.event, contact.note].filter(Boolean).join(" — ") || null,
+    );
+  for (const message of bundle.messages)
+    push(
+      "Message",
+      `${message.mine ? "À" : "De"} ${message.with} · ${message.sentAt}`,
+      message.body,
+    );
   return rows;
 }
 
@@ -258,6 +314,13 @@ export async function anonymizeParticipant(
     prisma.consentLog.updateMany({
       where: { participantId },
       data: { ipAddress: null, userAgent: null },
+    }),
+    prisma.message.deleteMany({ where: { senderId: participantId } }),
+    prisma.conversation.deleteMany({
+      where: { OR: [{ participantAId: participantId }, { participantBId: participantId }] },
+    }),
+    prisma.contact.deleteMany({
+      where: { OR: [{ ownerId: participantId }, { contactId: participantId }] },
     }),
     prisma.deletionRequest.updateMany({
       where: { participantId, status: "PENDING" },

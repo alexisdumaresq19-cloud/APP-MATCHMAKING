@@ -6,6 +6,7 @@ import { roundStartsAt, tableName } from "@/lib/rounds";
 
 export type ParticipantMatchCard = {
   matchId: string;
+  participantId: string;
   name: string;
   jobTitle: string | null;
   company: string;
@@ -81,6 +82,7 @@ export async function getParticipantEventView(
       const showContact = viewerCheckedIn && other.status === "CHECKED_IN";
       return {
         matchId: match.id,
+        participantId: p.id,
         name: `${p.firstName} ${p.lastName}`,
         jobTitle: p.jobTitle,
         company: p.companyName,

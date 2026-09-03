@@ -105,6 +105,7 @@ model Organization {
   deletionRequests DeletionRequest[]
   billingSnapshots BillingSnapshot[]
   consentVersions  ConsentTextVersion[] // ADDED
+  conversations    Conversation[] // ADDED (Phase 2)
 }
 
 /// ADDED: every version of the Law 25 notice ever adopted by an organization (S4-02).
@@ -193,36 +194,41 @@ model SectorAffinity {
 
 // A participant = a person + their company, at the organization level (reusable across events).
 model Participant {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  email          String
-  firstName      String
-  lastName       String
-  phone          String?
-  companyName    String
-  jobTitle       String?
-  sectorId       String?
-  sector         Sector?      @relation(fields: [sectorId], references: [id], onDelete: SetNull)
-  website        String?
-  city           String?
-  region         String? // administrative region (closed list, see src/lib/regions.ts)
-  offers         String[] // free tags: what the company offers
-  needs          String[] // free tags: what the company is looking for
-  soughtSectorIds String[] @default([]) // ADDED: sectors the company wants to meet ("Avec qui collaborer?")
-  description    String?      @db.Text // 300 characters max
-  tokenVersion   Int          @default(0) // increment to revoke every link
-  consentedAt    DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
-  invitationsOptOut Boolean @default(false) // ADDED: « Ne plus recevoir d'invitations » (anti-spam law)
-  directoryOptIn    Boolean @default(false) // ADDED (Phase 2): company listed in the public directory
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email             String
+  firstName         String
+  lastName          String
+  phone             String?
+  companyName       String
+  jobTitle          String?
+  sectorId          String?
+  sector            Sector?      @relation(fields: [sectorId], references: [id], onDelete: SetNull)
+  website           String?
+  city              String?
+  region            String? // administrative region (closed list, see src/lib/regions.ts)
+  offers            String[] // free tags: what the company offers
+  needs             String[] // free tags: what the company is looking for
+  soughtSectorIds   String[]     @default([]) // ADDED: sectors the company wants to meet ("Avec qui collaborer?")
+  description       String?      @db.Text // 300 characters max
+  tokenVersion      Int          @default(0) // increment to revoke every link
+  consentedAt       DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
+  invitationsOptOut Boolean      @default(false) // ADDED: « Ne plus recevoir d'invitations » (anti-spam law)
+  directoryOptIn    Boolean      @default(false) // ADDED (Phase 2): company listed in the public directory
   directoryOptInAt  DateTime? // ADDED (Phase 2): when the company chose to be listed
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  deletedAt      DateTime? // logical deletion (Law 25); identifying fields are anonymized
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  deletedAt         DateTime? // logical deletion (Law 25); identifying fields are anonymized
 
   registrations    EventRegistration[]
   consents         ConsentLog[]
   deletionRequests DeletionRequest[]
+  contacts         Contact[]           @relation("contactsOwned") // ADDED (Phase 2)
+  contactOf        Contact[]           @relation("contactsOf") // ADDED (Phase 2)
+  conversationsAsA Conversation[]      @relation("conversationA") // ADDED (Phase 2)
+  conversationsAsB Conversation[]      @relation("conversationB") // ADDED (Phase 2)
+  messagesSent     Message[] // ADDED (Phase 2)
 
   @@unique([organizationId, email])
   @@index([organizationId, sectorId])
@@ -268,25 +274,25 @@ model Event {
 }
 
 model EventRegistration {
-  id            String             @id @default(cuid())
-  eventId       String
-  event         Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  participantId String
-  participant   Participant        @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  status        RegistrationStatus @default(REGISTERED)
-  source        RegistrationSource @default(PLATFORM)
+  id                    String             @id @default(cuid())
+  eventId               String
+  event                 Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  participantId         String
+  participant           Participant        @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status                RegistrationStatus @default(REGISTERED)
+  source                RegistrationSource @default(PLATFORM)
   // Snapshot of the answers at registration time (the profile may change afterwards).
-  offersSnapshot String[]
-  needsSnapshot  String[]
-  soughtSectorsSnapshot String[] @default([]) // ADDED
-  goalsText      String?  @db.Text // "Qu'espérez-vous retirer de cet événement ?"
-  notes          String?  @db.Text // organizer's internal notes
-  checkedInAt    DateTime?
-  cancelledAt    DateTime?
-  publishedMatchesHash String? // ADDED: hash of the match list at last publication
-  publishedAt          DateTime? // ADDED: last time this registrant received the matches email
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  offersSnapshot        String[]
+  needsSnapshot         String[]
+  soughtSectorsSnapshot String[]           @default([]) // ADDED
+  goalsText             String?            @db.Text // "Qu'espérez-vous retirer de cet événement ?"
+  notes                 String?            @db.Text // organizer's internal notes
+  checkedInAt           DateTime?
+  cancelledAt           DateTime?
+  publishedMatchesHash  String? // ADDED: hash of the match list at last publication
+  publishedAt           DateTime? // ADDED: last time this registrant received the matches email
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
 
   assignments TableAssignment[]
   matchesAsA  Match[]           @relation("a")
@@ -342,21 +348,21 @@ model Match {
 }
 
 model MatchingRuleSet {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String       @default("Règles par défaut")
-  isDefault      Boolean      @default(false)
+  id                    String       @id @default(cuid())
+  organizationId        String
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                  String       @default("Règles par défaut")
+  isDefault             Boolean      @default(false)
   // Weights 0..100; see section 7.2
-  weightComplementarity Int     @default(40)
-  weightSectorAffinity  Int     @default(30)
-  weightRegion          Int     @default(15)
-  weightNovelty         Int     @default(15) // penalizes pairs that already met at a past event
-  penaltySameSector     Int     @default(60) // subtracted if same sector (competitors); 100 = exclusion
-  excludeSameCompany    Boolean @default(true)
-  minScoreToPropose     Int     @default(35)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  weightComplementarity Int          @default(40)
+  weightSectorAffinity  Int          @default(30)
+  weightRegion          Int          @default(15)
+  weightNovelty         Int          @default(15) // penalizes pairs that already met at a past event
+  penaltySameSector     Int          @default(60) // subtracted if same sector (competitors); 100 = exclusion
+  excludeSameCompany    Boolean      @default(true)
+  minScoreToPropose     Int          @default(35)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 
   events Event[]
 
@@ -445,4 +451,53 @@ model RateLimit {
   key         String   @id
   count       Int      @default(0)
   windowStart DateTime
+}
+
+// ADDED (Phase 2, D-37): « Ajouter à mes contacts » — a private bookmark of another company.
+model Contact {
+  id        String      @id @default(cuid())
+  ownerId   String
+  owner     Participant @relation("contactsOwned", fields: [ownerId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Participant @relation("contactsOf", fields: [contactId], references: [id], onDelete: Cascade)
+  eventId   String? // where they met, when known
+  note      String?     @db.Text
+  createdAt DateTime    @default(now())
+
+  @@unique([ownerId, contactId])
+  @@index([ownerId])
+}
+
+// ADDED (Phase 2, D-37): private thread between two companies (participantAId < participantBId).
+model Conversation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  participantAId String
+  participantA   Participant  @relation("conversationA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantBId String
+  participantB   Participant  @relation("conversationB", fields: [participantBId], references: [id], onDelete: Cascade)
+  lastMessageAt  DateTime?
+  blockedById    String? // participant who blocked the thread; null = open
+  notifiedAAt    DateTime? // last « nouveau message » email sent to A (at most one per hour)
+  notifiedBAt    DateTime?
+  createdAt      DateTime     @default(now())
+
+  messages Message[]
+
+  @@unique([participantAId, participantBId])
+  @@index([organizationId, lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         Participant  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String       @db.Text // 2000 characters max
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+
+  @@index([conversationId, createdAt])
 }

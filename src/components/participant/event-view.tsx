@@ -2,11 +2,22 @@ import { ExternalLinkIcon, MailIcon, PhoneIcon } from "lucide-react";
 import { ScrollReveal } from "@/components/motion/scroll-reveal";
 import { AnimatedIcon } from "@/components/ui/animated-icon";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ContactActions } from "@/components/participant/contact-actions";
 import { formatDate } from "@/lib/dates";
 import type { ParticipantMatchCard, ParticipantSeat } from "@/server/queries/participant";
 
 /** « Mes jumelages » : LinkedIn-style cards with the plain-French reasons (docs/REFERENCES_DESIGN). */
-export function MatchCards({ matches }: { matches: ParticipantMatchCard[] }) {
+export function MatchCards({
+  matches,
+  token,
+  eventId,
+  contactIds,
+}: {
+  matches: ParticipantMatchCard[];
+  token: string;
+  eventId: string;
+  contactIds: Set<string>;
+}) {
   if (matches.length === 0) {
     return (
       <EmptyState
@@ -103,6 +114,16 @@ export function MatchCards({ matches }: { matches: ParticipantMatchCard[] }) {
                   ) : null}
                 </>
               ) : null}
+            </div>
+
+            <div className="mt-4 border-t pt-3">
+              <ContactActions
+                token={token}
+                participantId={match.participantId}
+                eventId={eventId}
+                isContact={contactIds.has(match.participantId)}
+                compact
+              />
             </div>
           </li>
         </ScrollReveal>

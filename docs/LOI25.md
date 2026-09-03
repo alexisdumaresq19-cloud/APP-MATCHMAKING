@@ -43,6 +43,15 @@ d'entreprise : nom de l'entreprise, secteur, ville et région, site web, offres,
 recherchés, description et nombre d'événements. Le nom de la personne, son courriel et son
 téléphone n'y figurent jamais. L'anonymisation retire aussitôt la fiche.
 
+## 2 ter. Messagerie et carnet de contacts (Phase 2)
+
+Les entreprises s'écrivent dans la plateforme : ni courriel ni téléphone ne sont transmis. Seules
+les entreprises jumelées ensemble, ou toutes deux inscrites à l'annuaire public, peuvent ouvrir
+une conversation; chacune peut la fermer. Les messages ne sont lisibles que par les deux parties;
+l'organisation n'y a pas accès (finalité limitée). Le carnet de contacts est un signet privé : la
+personne ajoutée ne le voit pas. Ces données sont incluses dans l'export « Mes données » et
+supprimées avec le profil.
+
 ## 3. Droit d'accès et de portabilité (art. 27)
 
 Depuis son lien personnel, « **Mes données** » montre ce que nous conservons et offre le

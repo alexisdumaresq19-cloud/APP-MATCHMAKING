@@ -4,6 +4,7 @@ import { BrandProvider } from "@/components/shared/brand-provider";
 import { PoweredBy } from "@/components/shared/powered-by";
 import { ParticipantNav } from "@/components/participant/participant-nav";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
+import { unreadMessagesCount } from "@/server/services/messaging";
 
 export default async function ParticipantLayout({
   params,
@@ -16,6 +17,7 @@ export default async function ParticipantLayout({
   const context = await resolveParticipantAccess(token);
   if (!context) redirect("/p/lien-expire");
   const { organization, participant } = context;
+  const unread = await unreadMessagesCount(participant.id);
 
   return (
     <BrandProvider colors={organization}>
@@ -32,17 +34,22 @@ export default async function ParticipantLayout({
               {participant.firstName} {participant.lastName}
             </p>
           </div>
-          <ParticipantNav token={token} />
+          <ParticipantNav token={token} unread={unread} />
         </header>
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6">{children}</main>
         <footer className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6">
           <div className="flex flex-col gap-2 border-t pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <a
-              href={`/${organization.slug}/confidentialite`}
-              className="underline-offset-4 hover:underline"
-            >
-              Confidentialité
-            </a>
+            <span className="flex flex-wrap gap-x-4 gap-y-1">
+              <a href={`/p/${token}/donnees`} className="underline-offset-4 hover:underline">
+                Mes données
+              </a>
+              <a
+                href={`/${organization.slug}/confidentialite`}
+                className="underline-offset-4 hover:underline"
+              >
+                Confidentialité
+              </a>
+            </span>
             <PoweredBy />
           </div>
         </footer>

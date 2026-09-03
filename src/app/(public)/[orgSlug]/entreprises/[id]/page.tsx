@@ -93,6 +93,18 @@ export default async function CompanyPage({ params }: { params: Params }) {
         </section>
       </div>
 
+      <div className="rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm">
+        <p className="font-medium">Écrire à cette entreprise</p>
+        <p className="mt-1 text-muted-foreground">
+          Les entreprises inscrites s&apos;écrivent directement dans la plateforme, sans échanger de
+          coordonnées.{" "}
+          <Link href={`/${orgSlug}/connexion`} className="text-brand underline underline-offset-4">
+            Retrouvez votre accès
+          </Link>{" "}
+          puis ouvrez « Entreprises » dans votre espace.
+        </p>
+      </div>
+
       <p className="text-sm text-muted-foreground">
         {company.eventsAttended
           ? `A participé à ${company.eventsAttended} événement${company.eventsAttended > 1 ? "s" : ""} de ${organization.name}. `

@@ -52,6 +52,10 @@ inscriptions. Le bouton **QR** de l'onglet Détails donne une affiche à imprime
   « Ne plus recevoir d'invitations » sont exclues automatiquement (loi anti-pourriel).
 - Depuis son espace personnel, une entreprise voit aussi vos « Autres événements ouverts » et
   s'y inscrit en un clic avec son profil.
+- **Messagerie et contacts** : après un jumelage, chaque entreprise peut écrire à l'autre dans la
+  plateforme (« Message ») et la garder dans « Mes contacts » avec une note. Les entreprises de
+  l'annuaire public peuvent aussi s'écrire entre elles. Vous n'avez rien à modérer : chaque
+  entreprise peut fermer une conversation, et vous ne voyez pas le contenu des messages.
 - La page publique `/<organisation>/<événement>` : le participant remplit son profil (offres,
   besoins, « Avec qui voulez-vous collaborer? »), accepte l'avis de confidentialité et reçoit un
   courriel de confirmation avec son **lien personnel**.

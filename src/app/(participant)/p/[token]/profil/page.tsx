@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DirectoryVisibility } from "@/components/participant/directory-visibility";
 import { ProfileForm } from "@/components/participant/profile-form";
@@ -34,6 +35,16 @@ export default async function ParticipantProfilePage({
           Ces renseignements servent à vous jumeler. Tenez-les à jour avant chaque événement.
         </p>
       </div>
+      <p className="text-sm text-muted-foreground">
+        Vos droits et préférences :{" "}
+        <Link href={`/p/${token}/donnees`} className="text-brand underline underline-offset-4">
+          Mes données
+        </Link>{" "}
+        ·{" "}
+        <Link href={`/p/${token}/invitations`} className="text-brand underline underline-offset-4">
+          Invitations par courriel
+        </Link>
+      </p>
       <DirectoryVisibility
         token={token}
         optIn={participant.directoryOptIn}

@@ -22,6 +22,7 @@ import { paragraphs } from "@/lib/text";
 import { acceptConsent } from "@/server/actions/participant";
 import { currentConsentVersion, hasCurrentConsent } from "@/server/services/consent";
 import { getParticipantEventView } from "@/server/queries/participant";
+import { contactIdsOf } from "@/server/services/contacts";
 
 export const metadata: Metadata = { title: "Événement" };
 
@@ -57,6 +58,7 @@ export default async function ParticipantEventPage({
     registration.status === "CANCELLED"
       ? { matches: [], seats: [], published: false }
       : await getParticipantEventView(registration, event);
+  const contactIds = await contactIdsOf(participant.id);
 
   return (
     <div className="space-y-8">
@@ -179,7 +181,12 @@ export default async function ParticipantEventPage({
                 deux arrivés à l'événement.
               </p>
             ) : null}
-            <MatchCards matches={view.matches} />
+            <MatchCards
+              matches={view.matches}
+              token={token}
+              eventId={event.id}
+              contactIds={contactIds}
+            />
           </>
         ) : (
           <FormAlert

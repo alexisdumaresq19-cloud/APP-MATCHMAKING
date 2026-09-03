@@ -16,7 +16,8 @@ export type EmailTemplateName =
   | "deletion_requested"
   | "organizer_invite"
   | "participant_link"
-  | "event_invitation";
+  | "event_invitation"
+  | "message_received";
 
 export type EmailOrganization = {
   id?: string;

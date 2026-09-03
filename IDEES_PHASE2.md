@@ -21,8 +21,8 @@
 Retenu en Phase 1 : « Avec qui aimeriez-vous collaborer? » avec secteurs pré-cochés (D-26). Le reste :
 
 - Annuaire géolocalisé des entreprises de la région importées de Google Places (`is_registered`), avec tri « premium d'abord puis distance » (`is_premium`, payant).
-- Messagerie directe entre entreprises inscrites; bouton « Message » conditionnel à l'inscription des deux parties.
-- Carnet d'adresses personnel (« Ajouter à mes contacts ») après un jumelage.
+- ~~Messagerie directe entre entreprises inscrites; bouton « Message » conditionnel à l'inscription des deux parties.~~ Livré (P2-S2).
+- ~~Carnet d'adresses personnel (« Ajouter à mes contacts ») après un jumelage.~~ Livré (P2-S2).
 - Paiement intégré des billets (Stripe). Livré en Phase 1 : lien de billetterie externe (« Acheter mon billet ») et ajout au calendrier (`.ics` Apple/Outlook + Google Agenda) sur la page publique et dans l'espace participant.
 - Filtrage collaboratif : apprendre des acceptations (ex. 80 % des garderies acceptent les traiteurs) pour ajuster automatiquement les suggestions et la matrice d'affinité.
 - Score « 70 % étiquettes / 30 % distance » avec géolocalisation (latitude/longitude) plutôt que la région administrative.

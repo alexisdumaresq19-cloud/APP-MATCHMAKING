@@ -13,7 +13,7 @@
 - Messagerie entre participants; carte géographique; application native.
 - Génération de PDF vectoriel (`@react-pdf/renderer`) si la page HTML imprimable ne suffit pas.
 - Invitations « amenez un partenaire » : un participant recommande une entreprise complémentaire.
-- Sondage post-événement (« Avez-vous conclu une affaire ? ») pour mesurer la valeur des jumelages et ajuster la matrice d'affinité.
+- ~~Sondage post-événement (« Avez-vous conclu une affaire ? ») pour mesurer la valeur des jumelages et ajuster la matrice d'affinité.~~ Livré (P2-S3).
 - Check-in par lecture d'un code QR personnel (affiché dans l'espace participant), à la façon de Luma.
 
 ## Issues de la ligne directrice de la cliente (septembre 2026)
@@ -30,8 +30,8 @@ Retenu en Phase 1 : « Avec qui aimeriez-vous collaborer? » avec secteurs pré-
 ## Après la semaine 4 (septembre 2026)
 
 - Sentry (ou équivalent) branché sur `SENTRY_DSN` pour les erreurs serveur et client; pour l'instant, journaux pino sur Vercel.
-- Mesure Lighthouse automatisée (Lighthouse CI dans GitHub Actions) sur la page publique du domaine final; objectif ≥ 90 mobile.
-- Purge automatique des profils inactifs (ex. 24 mois après le dernier événement), avec préavis par courriel.
+- ~~Mesure Lighthouse automatisée (Lighthouse CI dans GitHub Actions) sur la page publique du domaine final; objectif ≥ 90 mobile.~~ Livré (P2-S3, `lighthouserc.json`).
+- ~~Purge automatique des profils inactifs (ex. 24 mois après le dernier événement), avec préavis par courriel.~~ Livré (P2-S3).
 - Stockage externe (Vercel Blob ou Supabase Storage) si la cliente veut des images plus lourdes qu'un logo (bannières d'événement).
 - Double authentification (TOTP) pour les comptes propriétaires.
 - ~~Export de l'annuaire complet en CSV (avec filtre) depuis `/admin/participants`.~~ Livré (P2-S1).

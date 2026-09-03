@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireOrganizerAction } from "@/lib/auth/session";
 import { isAppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { startSurvey } from "@/server/services/feedback";
 import { startInvitations } from "@/server/services/invitations";
 import {
   runEmailBatch,
@@ -71,10 +72,24 @@ export async function startInvitationRun(eventId: string): Promise<ActionState> 
   }
 }
 
+/** Step 1 of « Envoyer le bilan » after a completed event (P2-S3). */
+export async function startSurveyRun(eventId: string): Promise<ActionState> {
+  const { organizer, organization } = await requireOrganizerAction();
+  try {
+    await startSurvey(eventId, organization.id, { actorType: "organizer", actorId: organizer.id });
+    for (const path of pathsOf(eventId)) revalidatePath(path);
+    return { ok: true, message: "Envoi du bilan en cours…" };
+  } catch (error) {
+    if (isAppError(error)) return { ok: false, formError: error.message };
+    logger.error({ err: error }, "survey start failed");
+    return { ok: false, formError: GENERIC_ERROR };
+  }
+}
+
 /** Sends the next batch (20 emails) of the given kind; the client calls it until remaining = 0. */
 export async function sendBatch(eventId: string, kind: EmailBatchKind): Promise<BatchState> {
   const { organization } = await requireOrganizerAction();
-  if (!["publish", "reminder", "consent", "invite"].includes(kind)) {
+  if (!["publish", "reminder", "consent", "invite", "survey"].includes(kind)) {
     return { ok: false, formError: "Type d'envoi inconnu." };
   }
   try {

@@ -162,6 +162,22 @@ export default async function ParticipantEventPage({
         </section>
       ) : null}
 
+      {event.status === "COMPLETED" && view.published && registration.status === "CHECKED_IN" ? (
+        <section className="rounded-lg border border-brand/40 bg-brand/5 p-4">
+          <h2 className="text-lg font-semibold">Comment se sont passées vos rencontres?</h2>
+          <p className="mt-1 text-base text-muted-foreground">
+            Deux minutes pour dire, jumelage par jumelage, si une affaire ou un suivi en est sorti.
+            Vos réponses restent confidentielles et aident à mieux jumeler la prochaine fois.
+          </p>
+          <Link
+            href={`/p/${token}/evenements/${event.id}/bilan`}
+            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand px-4 text-base font-medium text-brand-foreground hover:opacity-90"
+          >
+            Faire mon bilan
+          </Link>
+        </section>
+      ) : null}
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">
           Mes jumelages

@@ -18,7 +18,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
     entityId: access.participant.id,
     metadata: { rows: rows.length },
   });
-  return new NextResponse(`﻿${contactsCsv(rows)}`, {
+  return new NextResponse(contactsCsv(rows), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="mes-contacts.csv"`,

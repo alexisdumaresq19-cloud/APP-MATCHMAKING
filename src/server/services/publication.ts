@@ -9,12 +9,13 @@ import { matchesFingerprint } from "@/lib/publication";
 import { roundStartsAt, tableName } from "@/lib/rounds";
 import type { PublishedMatch, PublishedSeat } from "@/lib/email/templates/matches-published";
 import { currentConsentVersion } from "./consent";
+import { eventSurveySummary, runSurveyBatch, type SurveySummary } from "./feedback";
 import { getInvitationOverview, runInvitationBatch, type InvitationOverview } from "./invitations";
 import { sendConsentPending, sendMatchesPublished, sendReminder } from "./participant-emails";
 
 export const EMAIL_BATCH_SIZE = 20;
 
-export type EmailBatchKind = "publish" | "reminder" | "consent" | "invite";
+export type EmailBatchKind = "publish" | "reminder" | "consent" | "invite" | "survey";
 
 export type BatchProgress = {
   sent: number;
@@ -40,6 +41,8 @@ export type PublicationOverview = {
   daysUntilEvent: number;
   /** « Inviter les participants passés » (S5-03). */
   invitations: InvitationOverview;
+  /** Post-event survey « Avez-vous conclu une affaire? » (P2-S3, D-38). */
+  survey: SurveySummary;
 };
 
 type Actor = { actorType: "organizer" | "system"; actorId?: string | null };
@@ -122,7 +125,7 @@ export async function getPublicationOverview(
   organizationId: string,
 ): Promise<PublicationOverview> {
   const event = await loadEvent(eventId, organizationId);
-  const [targets, totalMatches, seated, logs, invitations] = await Promise.all([
+  const [targets, totalMatches, seated, logs, invitations, survey] = await Promise.all([
     listTargets(eventId),
     prisma.match.count({ where: { eventId, status: { not: "EXCLUDED" } } }),
     prisma.tableAssignment.count({ where: { registration: { eventId }, round: 1 } }),
@@ -132,6 +135,7 @@ export async function getPublicationOverview(
       _count: { _all: true },
     }),
     getInvitationOverview(eventId, organizationId),
+    eventSurveySummary(eventId, organizationId),
   ]);
   const consented = await consentedSet(
     event.organization,
@@ -165,6 +169,7 @@ export async function getPublicationOverview(
     reminders: { sent: count("reminder", "sent"), failed: count("reminder", "failed") },
     daysUntilEvent: Math.ceil((event.startsAt.getTime() - Date.now()) / 86_400_000),
     invitations,
+    survey,
   };
 }
 
@@ -277,6 +282,7 @@ export async function runEmailBatch(
 ): Promise<BatchProgress> {
   // Invitations go to people who are NOT registered: a different queue, same batch mechanics.
   if (kind === "invite") return runInvitationBatch(eventId, organizationId, size);
+  if (kind === "survey") return runSurveyBatch(eventId, organizationId, size);
   const event = await loadEvent(eventId, organizationId);
   const organization = event.organization;
   const targets = await listTargets(eventId);

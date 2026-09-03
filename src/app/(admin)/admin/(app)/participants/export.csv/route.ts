@@ -61,7 +61,7 @@ export async function GET(request: Request) {
     metadata: { rows: rows.length, filters: query },
   });
   const stamp = new Date().toISOString().slice(0, 10);
-  return new NextResponse(`﻿${csv}`, {
+  return new NextResponse(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="participants-${stamp}.csv"`,

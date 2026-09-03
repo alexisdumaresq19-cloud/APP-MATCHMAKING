@@ -348,3 +348,27 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
   événement de rencontre, exportable en CSV; il obéit à la même règle d'introduction.
 - **Raison** : livrer les deux actions demandées sans ouvrir un canal de sollicitation : il faut
   avoir été présenté (jumelage) ou s'être rendu visible soi-même pour écrire.
+
+## D-38 — Phase 2, jalon 3 : bilan après l'événement et suggestions d'ajustement de la matrice
+- **Contexte** : la ligne directrice imagine un apprentissage automatique (« si 80 % des garderies
+  acceptent les transporteurs, proposer des transporteurs »). Il faut d'abord une mesure.
+- **Décision** : après un événement terminé, « Envoyer le bilan » (onglet Publication, par lots de
+  20, une fois par personne présente et consentante) invite chacun à dire, jumelage par jumelage,
+  ce qu'il en est sorti (`MatchFeedback` : affaire ou partenariat, suivi prévu, pas pour nous,
+  pas rencontrés), avec un commentaire facultatif; les réponses sont modifiables. L'organisation
+  voit un résumé par événement. Réglages › Affinités affiche des **suggestions** explicables :
+  quand au moins 5 rencontres entre deux secteurs ont été évaluées, un taux de réussite (affaire
+  ou suivi) ≥ 60 % propose +10, ≤ 25 % propose −10; l'Organisatrice applique ou non, en un clic,
+  et chaque application est journalisée.
+- **Raison** : mesurer la valeur réelle des jumelages, puis laisser l'humain décider avec des
+  chiffres, plutôt qu'un modèle opaque qui modifierait la matrice tout seul.
+
+## D-39 — Phase 2, jalon 3 : conservation automatique (24 mois, préavis de 30 jours)
+- **Décision** : une tâche hebdomadaire (`/api/cron/retention` via Vercel Cron, protégée par
+  `CRON_SECRET`; aussi `pnpm retention`) envoie un avis aux profils sans événement, sans
+  modification et sans message depuis 24 mois (`purgeNoticeSentAt`), puis anonymise 30 jours plus
+  tard ceux qui n'ont rien fait entre-temps, exactement comme une demande de suppression
+  (D-33, acteur « système »). « Conserver mon profil » arrête le compte à rebours; toute activité
+  (inscription, consentement, message) aussi.
+- **Raison** : la Loi 25 impose de ne pas conserver au-delà des fins; un préavis avec un bouton
+  respecte les personnes qui veulent rester dans le réseau.

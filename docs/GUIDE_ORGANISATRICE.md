@@ -98,6 +98,12 @@ sur place (elle reçoit tout de suite ses jumelages si les places le permettent)
 À la fin : **Terminer l'événement**. Les absents passent en no-show et le **relevé de facturation**
 est figé. Il ne changera plus.
 
+Quelques jours plus tard, onglet Publication › **Envoyer le bilan** : chaque personne présente
+reçoit « Comment se sont passées vos rencontres? » et répond, jumelage par jumelage (affaire ou
+partenariat, suivi prévu, pas pour nous, pas rencontrés). Le résumé s'affiche sous le bouton. Dès
+que cinq rencontres entre deux secteurs ont été évaluées, **Réglages › Affinités** vous propose des
+ajustements chiffrés de la matrice, à appliquer ou non en un clic.
+
 ## 9. Les participants, après l'événement
 
 - **Participants** : l'annuaire de toutes les personnes, tous événements confondus, avec fiche
@@ -123,3 +129,7 @@ Dupliquez-le pour la prochaine édition.
 
 **Où sont mes données?** Dans une base PostgreSQL hébergée (Neon ou Supabase) au Canada ou aux
 États-Unis selon la région choisie; voir la section Sauvegarde du `README.md`.
+
+**Que deviennent les profils inactifs?** Après 24 mois sans événement ni activité, la personne
+reçoit un avis; sans réaction dans les 30 jours, son profil est anonymisé automatiquement
+(`docs/LOI25.md`). Vous n'avez rien à faire, à part garder `CRON_SECRET` configuré sur Vercel.

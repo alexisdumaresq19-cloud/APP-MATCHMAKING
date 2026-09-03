@@ -26,6 +26,8 @@
     "db:studio": "prisma studio",
     "create-org": "tsx --env-file-if-exists=.env scripts/create-org.ts",
     "remove-demo": "tsx --env-file-if-exists=.env scripts/remove-demo.ts",
+    "retention": "tsx --env-file-if-exists=.env scripts/retention.ts",
+    "lighthouse": "lhci autorun",
     "billing:report": "tsx --env-file-if-exists=.env scripts/billing-report.ts",
     "prepare": "husky",
     "first-run": "tsx scripts/first-run.ts",

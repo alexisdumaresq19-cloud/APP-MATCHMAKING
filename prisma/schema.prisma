@@ -221,14 +221,16 @@ model Participant {
   updatedAt         DateTime     @updatedAt
   deletedAt         DateTime? // logical deletion (Law 25); identifying fields are anonymized
 
-  registrations    EventRegistration[]
-  consents         ConsentLog[]
-  deletionRequests DeletionRequest[]
-  contacts         Contact[]           @relation("contactsOwned") // ADDED (Phase 2)
-  contactOf        Contact[]           @relation("contactsOf") // ADDED (Phase 2)
-  conversationsAsA Conversation[]      @relation("conversationA") // ADDED (Phase 2)
-  conversationsAsB Conversation[]      @relation("conversationB") // ADDED (Phase 2)
-  messagesSent     Message[] // ADDED (Phase 2)
+  registrations     EventRegistration[]
+  consents          ConsentLog[]
+  deletionRequests  DeletionRequest[]
+  contacts          Contact[]           @relation("contactsOwned") // ADDED (Phase 2)
+  contactOf         Contact[]           @relation("contactsOf") // ADDED (Phase 2)
+  conversationsAsA  Conversation[]      @relation("conversationA") // ADDED (Phase 2)
+  conversationsAsB  Conversation[]      @relation("conversationB") // ADDED (Phase 2)
+  messagesSent      Message[] // ADDED (Phase 2)
+  matchFeedbacks    MatchFeedback[] // ADDED (Phase 2, P2-S3)
+  purgeNoticeSentAt DateTime? // ADDED (Phase 2, P2-S3): retention notice sent; anonymized 30 days later if still inactive
 
   @@unique([organizationId, email])
   @@index([organizationId, sectorId])
@@ -261,6 +263,7 @@ model Event {
   publishedAt           DateTime?
   reminderSentAt        DateTime? // ADDED
   invitationsStartedAt  DateTime? // ADDED: start of the latest « Inviter les participants passés » run
+  surveySentAt          DateTime? // ADDED (Phase 2, P2-S3): start of the post-event survey run
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
@@ -342,6 +345,7 @@ model Match {
   status    MatchStatus       @default(PROPOSED)
   rank      Int? // rank in a's list (and b's)
   createdAt DateTime          @default(now())
+  feedbacks MatchFeedback[] // ADDED (Phase 2, P2-S3)
 
   @@unique([eventId, aId, bId])
   @@index([eventId, status])
@@ -500,4 +504,27 @@ model Message {
   readAt         DateTime?
 
   @@index([conversationId, createdAt])
+}
+
+// ADDED (Phase 2, P2-S3, D-38): « Avez-vous conclu une affaire? » — one answer per match and rater.
+enum FeedbackOutcome {
+  DEAL // a deal or a partnership
+  FOLLOW_UP // a follow-up is planned
+  NO_FIT // not for us
+  NOT_MET // we did not actually meet
+}
+
+model MatchFeedback {
+  id            String          @id @default(cuid())
+  matchId       String
+  match         Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   Participant     @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  outcome       FeedbackOutcome
+  comment       String?         @db.Text
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([matchId, participantId])
+  @@index([participantId])
 }

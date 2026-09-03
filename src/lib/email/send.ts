@@ -17,7 +17,9 @@ export type EmailTemplateName =
   | "organizer_invite"
   | "participant_link"
   | "event_invitation"
-  | "message_received";
+  | "message_received"
+  | "event_survey"
+  | "retention_notice";
 
 export type EmailOrganization = {
   id?: string;

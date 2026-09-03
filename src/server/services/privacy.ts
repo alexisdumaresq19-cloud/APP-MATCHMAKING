@@ -281,7 +281,7 @@ export async function requestDeletion(
 export async function anonymizeParticipant(
   organizationId: string,
   participantId: string,
-  actor: { organizerId: string; note?: string | null },
+  actor: { organizerId: string | null; note?: string | null; actorType?: "organizer" | "system" },
 ): Promise<void> {
   const [organization, participant] = await Promise.all([
     prisma.organization.findUniqueOrThrow({ where: { id: organizationId } }),
@@ -327,14 +327,14 @@ export async function anonymizeParticipant(
       data: {
         status: "COMPLETED",
         resolvedAt: new Date(),
-        resolvedById: actor.organizerId,
+        resolvedById: actor.organizerId ?? null,
         note: actor.note ?? null,
       },
     }),
   ]);
   await audit({
     organizationId,
-    actorType: "organizer",
+    actorType: actor.actorType ?? "organizer",
     actorId: actor.organizerId,
     action: "DELETE",
     entity: "Participant",

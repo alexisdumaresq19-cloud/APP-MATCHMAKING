@@ -85,8 +85,11 @@ L'anonymisation est irréversible et journalisée (`AuditLog`, action `DELETE`).
 - Jetons de connexion (liens magiques, invitations, réinitialisations) : à usage unique, expirent
   en 15 minutes (connexion) ou 7 jours (invitation).
 
-Une politique de purge automatique (par exemple 24 mois après le dernier événement) est prévue en
-Phase 2 (`IDEES_PHASE2.md`).
+**Purge automatique (Phase 2, D-39)** : chaque semaine, les profils sans événement, sans
+modification et sans message depuis 24 mois reçoivent un avis; 30 jours plus tard, s'ils n'ont
+rien fait, ils sont anonymisés comme une demande de suppression. Le bouton « Conserver mon profil »
+de l'avis arrête le compte à rebours. Configuration : variable `CRON_SECRET` sur Vercel
+(`README.md`).
 
 ## 7. Mesures de sécurité (art. 3.2, 10)
 

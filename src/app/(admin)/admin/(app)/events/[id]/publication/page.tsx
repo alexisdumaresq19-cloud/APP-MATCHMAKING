@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { render } from "@react-email/render";
 import { PublishPanel } from "@/components/admin/publication/publish-panel";
+import { SurveySummary } from "@/components/admin/publication/survey-summary";
 import { FormAlert } from "@/components/shared/form-field";
 import { StatCard } from "@/components/shared/stat-card";
 import { requireOrganizer } from "@/lib/auth/session";
@@ -110,6 +111,8 @@ export default async function PublicationPage({ params }: { params: Promise<{ id
       ) : null}
 
       <PublishPanel eventId={id} overview={overview} />
+
+      {overview.status === "COMPLETED" ? <SurveySummary summary={overview.survey} /> : null}
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">

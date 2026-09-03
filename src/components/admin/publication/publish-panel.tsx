@@ -7,6 +7,7 @@ import {
   BellRingIcon,
   MailCheckIcon,
   SendIcon,
+  ClipboardCheckIcon,
   ShieldCheckIcon,
   UserRoundPlusIcon,
 } from "lucide-react";
@@ -29,6 +30,7 @@ import {
   sendBatch,
   startInvitationRun,
   startReminderRun,
+  startSurveyRun,
 } from "@/server/actions/publication";
 import type { EmailBatchKind } from "@/server/services/publication";
 import type { ActionState } from "@/server/actions/types";
@@ -47,6 +49,7 @@ const LABELS: Record<EmailBatchKind, { running: string; done: string }> = {
   reminder: { running: "Envoi du rappel…", done: "Rappel envoyé" },
   consent: { running: "Envoi des demandes de consentement…", done: "Demandes envoyées" },
   invite: { running: "Envoi des invitations…", done: "Invitations envoyées" },
+  survey: { running: "Envoi du bilan…", done: "Bilan envoyé" },
 };
 
 /**
@@ -103,10 +106,12 @@ export function PublishPanel({
   const firstTime = !overview.publishedAt;
   const invitations = overview.invitations;
   const canInvite = invitations.registrationOpen && invitations.invitable > 0;
+  const survey = overview.survey;
+  const canSurvey = overview.status === "COMPLETED" && survey.eligible > 0;
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <AlertDialog>
           <AlertDialogTrigger
             render={
@@ -249,6 +254,46 @@ export function PublishPanel({
             </span>
           </span>
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger
+            render={
+              <Button
+                variant={overview.status === "COMPLETED" ? "default" : "outline"}
+                size="lg"
+                className="al-group h-auto min-h-12 justify-start gap-3 py-3"
+                disabled={!canSurvey || busy}
+              >
+                <ClipboardCheckIcon aria-hidden="true" />
+                <span className="text-left">
+                  <span className="block font-semibold">Envoyer le bilan</span>
+                  <span className="block text-xs font-normal opacity-90">
+                    {overview.status === "COMPLETED"
+                      ? `${survey.eligible} participant${survey.eligible > 1 ? "s" : ""} à sonder`
+                      : "Après la clôture de l'événement"}
+                    {survey.responses
+                      ? ` · ${survey.responses} réponse${survey.responses > 1 ? "s" : ""}`
+                      : ""}
+                  </span>
+                </span>
+              </Button>
+            }
+          />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Envoyer le bilan des rencontres?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {`Chaque personne présente recevra un courriel « Comment se sont passées vos rencontres? » (${survey.eligible} personne${survey.eligible > 1 ? "s" : ""}, une seule fois). Ses réponses, jumelage par jumelage, alimentent les suggestions d'ajustement de votre matrice d'affinité.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={() => loop("survey", () => startSurveyRun(eventId))}>
+                Envoyer le bilan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {run ? (

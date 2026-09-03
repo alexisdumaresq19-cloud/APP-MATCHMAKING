@@ -136,6 +136,9 @@ aussi (mêmes étapes, URL « Transaction pooler » dans `DATABASE_URL` et URL d
    domaine vérifié, `onboarding@resend.dev` n'écrit qu'à votre propre adresse.
 6. **Domaine** — Vercel › *Domains* : ajouter le domaine, suivre les instructions DNS; HTTPS est
    automatique. Mettre `AUTH_URL` et `APP_BASE_URL` à jour, puis redéployer.
+7. **Tâche planifiée** — définir `CRON_SECRET` (`openssl rand -base64 32`) dans les variables
+   Vercel : `vercel.json` déclare la purge hebdomadaire des profils inactifs (`/api/cron/retention`,
+   lundi 9 h UTC, D-39). Sans le secret, la route refuse de s'exécuter. À la main : `pnpm retention`.
 
 ## Sauvegarde et restauration
 
@@ -163,6 +166,7 @@ ceux de plus de 12 mois.
 - [ ] Réglages › Organisation : logo, couleurs, courriel du responsable de la confidentialité
 - [ ] Réglages › Consentement : texte relu et adopté (voir `docs/LOI25.md`)
 - [ ] Domaine final en HTTPS; `AUTH_URL` et `APP_BASE_URL` à jour
+- [ ] `CRON_SECRET` défini (purge automatique des profils inactifs)
 - [ ] Première sauvegarde `pg_dump` faite et rangée
 - [ ] Un événement de test créé, une inscription faite, le courriel reçu, puis l'événement archivé
 

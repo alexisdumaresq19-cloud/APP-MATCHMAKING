@@ -17,6 +17,8 @@ export type DirectoryRow = {
   consented: boolean;
   deletedAt: Date | null;
   pendingDeletion: boolean;
+  directoryOptIn: boolean;
+  invitationsOptOut: boolean;
 };
 
 /** The directory (S4-06): search by name, company or email, filter by sector, paginated. */
@@ -24,6 +26,7 @@ export async function listDirectory(
   organizationId: string,
   consentVersion: string,
   query: ParticipantsQuery,
+  options: { all?: boolean } = {},
 ): Promise<{ rows: DirectoryRow[]; total: number; pageCount: number }> {
   const where: Prisma.ParticipantWhereInput = { organizationId };
   if (query.q) {
@@ -49,8 +52,8 @@ export async function listDirectory(
         deletionRequests: { where: { status: "PENDING" }, select: { id: true }, take: 1 },
       },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
-      skip: (query.page - 1) * PARTICIPANTS_PAGE_SIZE,
-      take: PARTICIPANTS_PAGE_SIZE,
+      skip: options.all ? undefined : (query.page - 1) * PARTICIPANTS_PAGE_SIZE,
+      take: options.all ? undefined : PARTICIPANTS_PAGE_SIZE,
     }),
     prisma.participant.count({ where }),
   ]);
@@ -67,6 +70,8 @@ export async function listDirectory(
       consented: p.consents.length > 0,
       deletedAt: p.deletedAt,
       pendingDeletion: p.deletionRequests.length > 0,
+      directoryOptIn: p.directoryOptIn,
+      invitationsOptOut: p.invitationsOptOut,
     })),
     total,
     pageCount: Math.max(1, Math.ceil(total / PARTICIPANTS_PAGE_SIZE)),

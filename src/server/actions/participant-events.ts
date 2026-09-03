@@ -66,6 +66,38 @@ export async function registerFromSpace(
   redirect(`/p/${token}/evenements/${eventId}`);
 }
 
+/** « Afficher mon entreprise dans l'annuaire public » (Phase 2, D-36). */
+export async function setDirectoryOptIn(token: string, optIn: boolean): Promise<ActionState> {
+  const context = await resolveParticipantAccess(token);
+  if (!context) return { ok: false, formError: "Votre lien n'est plus valide." };
+  try {
+    await prisma.participant.update({
+      where: { id: context.participant.id },
+      data: { directoryOptIn: optIn, directoryOptInAt: optIn ? new Date() : null },
+    });
+    await audit({
+      organizationId: context.organization.id,
+      actorType: "participant",
+      actorId: context.participant.id,
+      action: "UPDATE",
+      entity: "Participant",
+      entityId: context.participant.id,
+      metadata: { directoryOptIn: optIn },
+    });
+    revalidatePath(`/p/${token}`, "layout");
+    revalidatePath(`/${context.organization.slug}/entreprises`, "layout");
+    return {
+      ok: true,
+      message: optIn
+        ? "Votre entreprise apparaît maintenant dans l'annuaire public."
+        : "Votre entreprise n'apparaît plus dans l'annuaire public.",
+    };
+  } catch (error) {
+    logger.error({ err: error }, "directory opt-in update failed");
+    return { ok: false, formError: GENERIC_ERROR };
+  }
+}
+
 /** « Ne plus recevoir d'invitations » / « Recevoir à nouveau les invitations ». */
 export async function setInvitationsOptOut(token: string, optOut: boolean): Promise<ActionState> {
   const context = await resolveParticipantAccess(token);

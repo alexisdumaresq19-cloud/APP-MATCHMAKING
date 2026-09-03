@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DirectoryVisibility } from "@/components/participant/directory-visibility";
 import { ProfileForm } from "@/components/participant/profile-form";
 import { resolveParticipantAccess } from "@/lib/auth/participant-session";
 import { REGIONS } from "@/lib/regions";
@@ -33,6 +34,11 @@ export default async function ParticipantProfilePage({
           Ces renseignements servent à vous jumeler. Tenez-les à jour avant chaque événement.
         </p>
       </div>
+      <DirectoryVisibility
+        token={token}
+        optIn={participant.directoryOptIn}
+        publicUrl={`/${organization.slug}/entreprises/${participant.id}`}
+      />
       <ProfileForm
         action={updateParticipantProfile.bind(null, token)}
         initial={{

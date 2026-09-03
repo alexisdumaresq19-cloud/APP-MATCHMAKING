@@ -34,5 +34,5 @@ Retenu en Phase 1 : « Avec qui aimeriez-vous collaborer? » avec secteurs pré-
 - Purge automatique des profils inactifs (ex. 24 mois après le dernier événement), avec préavis par courriel.
 - Stockage externe (Vercel Blob ou Supabase Storage) si la cliente veut des images plus lourdes qu'un logo (bannières d'événement).
 - Double authentification (TOTP) pour les comptes propriétaires.
-- Export de l'annuaire complet en CSV (avec filtre) depuis `/admin/participants`.
+- ~~Export de l'annuaire complet en CSV (avec filtre) depuis `/admin/participants`.~~ Livré (P2-S1).
 - Registre des incidents de confidentialité tenu dans l'application plutôt qu'à côté.

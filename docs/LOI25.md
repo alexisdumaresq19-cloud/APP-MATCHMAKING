@@ -34,6 +34,15 @@ affichée sur la page publique `/<organisation>/confidentialite`, dans les courr
 - Le consentement est demandé par organisation, pas par événement : une personne qui participe à
   plusieurs événements n'accepte le texte qu'une fois, jusqu'au prochain changement.
 
+## 2 bis. Annuaire public des entreprises (Phase 2)
+
+Une entreprise peut choisir, depuis « Mon profil », d'apparaître dans l'annuaire public de
+l'organisation. Le choix est explicite (jamais pré-coché), horodaté (`directoryOptInAt`),
+journalisé et révocable en un clic. La fiche publique ne montre que des renseignements
+d'entreprise : nom de l'entreprise, secteur, ville et région, site web, offres, besoins, secteurs
+recherchés, description et nombre d'événements. Le nom de la personne, son courriel et son
+téléphone n'y figurent jamais. L'anonymisation retire aussitôt la fiche.
+
 ## 3. Droit d'accès et de portabilité (art. 27)
 
 Depuis son lien personnel, « **Mes données** » montre ce que nous conservons et offre le

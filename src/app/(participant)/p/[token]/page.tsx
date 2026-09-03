@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDaysIcon, ChevronRightIcon, MapPinIcon, UserRoundPlusIcon } from "lucide-react";
+import {
+  BuildingIcon,
+  CalendarDaysIcon,
+  ChevronRightIcon,
+  MapPinIcon,
+  UserRoundPlusIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -87,6 +93,23 @@ export default async function ParticipantHomePage({
           </ul>
         )}
       </section>
+
+      {!participant.directoryOptIn ? (
+        <Link
+          href={`/p/${token}/profil#annuaire`}
+          className="flex items-center gap-3 rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm transition-colors hover:bg-brand/10"
+        >
+          <BuildingIcon className="size-5 shrink-0 text-brand" aria-hidden="true" />
+          <span>
+            <span className="font-medium">Faites-vous connaître.</span> Affichez votre entreprise
+            dans l&apos;annuaire public : les autres entreprises pourront vous trouver.
+          </span>
+          <ChevronRightIcon
+            className="ml-auto size-5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </Link>
+      ) : null}
 
       {openEvents.length ? (
         <section className="space-y-3">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SearchIcon, ShieldAlertIcon } from "lucide-react";
+import { DownloadIcon, SearchIcon, ShieldAlertIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,20 +57,29 @@ export default async function ParticipantsPage({
         title="Participants"
         description={`${result.total} participant${result.total > 1 ? "s" : ""} dans votre annuaire, tous événements confondus.`}
         actions={
-          <Link
-            href="/admin/participants/suppressions"
-            className={cn(
-              buttonVariants({ variant: pendingDeletions ? "default" : "outline", size: "lg" }),
-            )}
-          >
-            <ShieldAlertIcon aria-hidden="true" />
-            Demandes de suppression
-            {pendingDeletions ? (
-              <span className="ml-1 rounded-full bg-background/20 px-2 text-xs tabular-nums">
-                {pendingDeletions}
-              </span>
-            ) : null}
-          </Link>
+          <>
+            <a
+              href={`/admin/participants/export.csv${pageLink(1).includes("?") ? pageLink(1).slice(pageLink(1).indexOf("?")) : ""}`}
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+            >
+              <DownloadIcon aria-hidden="true" />
+              Exporter (CSV)
+            </a>
+            <Link
+              href="/admin/participants/suppressions"
+              className={cn(
+                buttonVariants({ variant: pendingDeletions ? "default" : "outline", size: "lg" }),
+              )}
+            >
+              <ShieldAlertIcon aria-hidden="true" />
+              Demandes de suppression
+              {pendingDeletions ? (
+                <span className="ml-1 rounded-full bg-background/20 px-2 text-xs tabular-nums">
+                  {pendingDeletions}
+                </span>
+              ) : null}
+            </Link>
+          </>
         }
       />
       <form method="get" className="mb-4 flex flex-wrap gap-2">
@@ -155,6 +164,9 @@ export default async function ParticipantsPage({
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
+                      {row.directoryOptIn && !row.deletedAt ? (
+                        <Badge variant="outline">Annuaire public</Badge>
+                      ) : null}
                       {row.deletedAt ? (
                         <Badge variant="outline">Anonymisé</Badge>
                       ) : row.pendingDeletion ? (

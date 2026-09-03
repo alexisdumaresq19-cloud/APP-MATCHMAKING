@@ -214,6 +214,8 @@ model Participant {
   tokenVersion   Int          @default(0) // increment to revoke every link
   consentedAt    DateTime? // ADDED: last consent timestamp (denormalized from ConsentLog)
   invitationsOptOut Boolean @default(false) // ADDED: « Ne plus recevoir d'invitations » (anti-spam law)
+  directoryOptIn    Boolean @default(false) // ADDED (Phase 2): company listed in the public directory
+  directoryOptInAt  DateTime? // ADDED (Phase 2): when the company chose to be listed
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime? // logical deletion (Law 25); identifying fields are anonymized

@@ -39,6 +39,11 @@ inscriptions. Le bouton **QR** de l'onglet Détails donne une affiche à imprime
 
 ## 4. Les inscriptions
 
+- **L'annuaire des entreprises** `/<organisation>/entreprises` : les entreprises inscrites qui ont
+  choisi d'y apparaître (réglage dans leur profil), avec recherche par mot-clé, secteur et région.
+  Aucune coordonnée personnelle n'y est montrée.
+- **« Mon accès »** `/<organisation>/connexion` : une entreprise qui a perdu son lien personnel le
+  reçoit à nouveau par courriel, sans mot de passe.
 - **Votre vitrine** `/<organisation>` (ex. : `app…/demo`) liste tous vos événements à venir avec
   « S'inscrire » et l'ajout au calendrier. C'est le lien à mettre sur votre site et vos réseaux.
 - **Inviter les participants passés** (onglet Publication de l'événement) : chaque entreprise de
@@ -92,7 +97,8 @@ est figé. Il ne changera plus.
 ## 9. Les participants, après l'événement
 
 - **Participants** : l'annuaire de toutes les personnes, tous événements confondus, avec fiche
-  (profil, inscriptions, jumelages, consentements) et export JSON.
+  (profil, inscriptions, jumelages, consentements), export JSON par personne et export CSV de la
+  liste filtrée (avec les préférences annuaire public et invitations).
 - **Demandes de suppression** : la file des demandes faites par les participants depuis
   « Mes données ». Vous avez 30 jours pour répondre (voir `docs/LOI25.md`). « Anonymiser » efface
   la personne mais conserve le décompte pour la facturation; « Refuser » exige un motif, conservé.

@@ -317,3 +317,19 @@ Format : `D-nn — Titre` · Contexte · Décision · Raison · Conséquences.
 - **Raison** : donner à l'Organisatrice un vrai canal de remplissage sans messagerie ni compte
   entreprise (Phase 2), en restant du côté sûr de la LCAP grâce à la relation d'affaires existante
   et au désabonnement en un clic.
+
+## D-36 — Phase 2, jalon 1 : annuaire public opt-in, « Mon accès » sans mot de passe
+- **Contexte** : la ligne directrice demande un annuaire d'entreprises consultable et une présence
+  durable pour les entreprises. Une entreprise n'avait qu'un lien reçu par courriel.
+- **Décision** : `/<slug>/entreprises` liste les entreprises inscrites qui ont activé
+  `Participant.directoryOptIn` (opt-in explicite depuis « Mon profil », révocable en un clic,
+  journalisé, horodaté). La fiche publique montre les faits d'entreprise seulement (nom de
+  l'entreprise, secteur, ville et région, site web, offres, besoins, secteurs recherchés,
+  description, nombre d'événements) et jamais le nom de la personne, son courriel ni son
+  téléphone. « Mon accès » (`/<slug>/connexion`) renvoie le lien personnel par courriel : pas de
+  mot de passe à gérer pour les entreprises, le lien signé reste l'identité (D-05). Les pages
+  publiques d'une organisation partagent une mise en page avec navigation (Événements ·
+  Entreprises · Mon accès). L'annuaire admin s'exporte en CSV avec les préférences.
+- **Raison** : rendre visible ce que l'entreprise choisit de rendre visible, rien de plus (Loi 25),
+  sans ajouter de comptes à administrer; la messagerie (P2-S2) s'appuiera sur le même opt-in pour
+  décider qui peut écrire à qui.

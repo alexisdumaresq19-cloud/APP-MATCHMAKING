@@ -21,8 +21,8 @@ Légende : ✅ livré · 🟡 livré autrement (même résultat, mécanisme diff
 | Entreprises de la région importées de Google (sans inscription) | ⏭️ | Import Google Places : coût par requête, conditions d'utilisation de Google et géolocalisation à concevoir. Phase 2. |
 | Tri payant `is_premium` puis distance | ⏭️ | Dépend de l'annuaire public et d'un paiement. Phase 2. |
 | Bouton « Message direct » si l'entreprise est inscrite | ⏭️ | Messagerie entre entreprises : Phase 2 (consentement à partager les coordonnées à prévoir, voir `docs/LOI25.md`). |
-| Profils : nom, logo, adresse, secteur, mots-clés, description | 🟡 | Profil participant : nom, entreprise, poste, secteur, ville, région, site web, offres, besoins, secteurs recherchés, description (300 caractères). Pas de logo par entreprise ni de latitude/longitude en Phase 1 (région administrative à la place). |
-| Annuaire consultable | 🟡 | Annuaire interne `/admin/participants` (recherche, filtre par secteur, fiche complète) pour l'organisation; pas d'annuaire public des entreprises en Phase 1. Les entreprises ont toutefois une vitrine publique des événements (`/<organisation>`) et, dans leur espace, la liste des événements ouverts avec inscription en un clic. |
+| Profils : nom, logo, adresse, secteur, mots-clés, description | 🟡 | Profil participant : nom, entreprise, poste, secteur, ville, région, site web, offres, besoins, secteurs recherchés, description (300 caractères), fiche publique opt-in (P2-S1). Pas de logo par entreprise ni de latitude/longitude (région administrative à la place; géolocalisation au jalon P2-S4). |
+| Annuaire consultable | ✅ (Phase 2, P2-S1) | Annuaire public `/<organisation>/entreprises` des entreprises inscrites qui ont activé leur fiche (opt-in), avec recherche par mot-clé, secteur et région, et fiche publique sans coordonnées personnelles. Les entreprises non inscrites (import Google Places) restent au jalon P2-S4. |
 
 ## Section 2 — Algorithme de matchmaking
 

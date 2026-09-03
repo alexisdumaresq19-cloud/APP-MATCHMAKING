@@ -74,6 +74,12 @@ Légende : `[x]` fait · `[ ]` à faire · `[~]` en cours · `[!]` bloqué
 - [x] Lien de billetterie externe + ajout au calendrier (`.ics`, Google Agenda)
 - [x] Vitrine publique `/<organisation>`, « Autres événements ouverts » + inscription en un clic, « Inviter les participants passés » avec désabonnement (D-35)
 
+## Phase 2 (voir PLAN_PHASE2.md)
+- [x] P2-S1 Présence des entreprises : « Mon accès » par courriel, annuaire public opt-in avec fiche, navigation publique, export CSV admin (D-36)
+- [ ] P2-S2 Contacts et messagerie
+- [ ] P2-S3 Sondage post-événement, apprentissage, purge, Lighthouse CI, TOTP
+- [ ] P2-S4 Stripe (mise en avant, billets), import Google Places — attend compte Stripe, clé Google et tarif
+
 ## Liste de vérification sécurité (section 9)
 - [x] Toutes les entrées validées avec Zod côté serveur (`src/lib/validation`)
 - [x] Isolation par organisation sur chaque requête + test A/B (`tests/integration/org-scope.test.ts`)
